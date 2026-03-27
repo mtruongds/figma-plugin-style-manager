@@ -1,5 +1,5 @@
 {
-  "name": "class-manager-plugin",
+  "name": "styles-managers-plugin",
   "version": "1.0.0",
   "scripts": {
     "build": "node build.js",

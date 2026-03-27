@@ -1,8 +1,6 @@
 "use strict";
 (() => {
   // src/code.ts
-  var SHARED_PLUGIN_NAMESPACE = "class-manager";
-  var SHARED_PLUGIN_KEY = "class-registry";
   var LOCAL_STORAGE_KEY = "local-classes";
   function serializePaint(paint) {
     var _a;
@@ -474,32 +472,12 @@
   async function saveLocalClasses(classes) {
     await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes));
   }
-  function loadSharedClasses() {
-    try {
-      const raw = figma.root.getSharedPluginData(SHARED_PLUGIN_NAMESPACE, SHARED_PLUGIN_KEY);
-      if (!raw) return [];
-      return JSON.parse(raw);
-    } catch (e) {
-      return [];
-    }
-  }
-  function saveSharedClasses(classes) {
-    try {
-      figma.root.setSharedPluginData(
-        SHARED_PLUGIN_NAMESPACE,
-        SHARED_PLUGIN_KEY,
-        JSON.stringify(classes)
-      );
-    } catch (e) {
-      console.warn("[class-manager] shared save failed:", e);
-    }
-  }
-  function mergeClasses(local, shared) {
+  function mergeClasses(local, imported) {
     const map = /* @__PURE__ */ new Map();
-    for (const cls of [...shared, ...local]) {
-      const existing = map.get(cls.name);
+    for (const cls of [...local, ...imported]) {
+      const existing = map.get(cls.id);
       if (!existing || new Date(cls.updatedAt) >= new Date(existing.updatedAt)) {
-        map.set(cls.name, cls);
+        map.set(cls.id, cls);
       }
     }
     return Array.from(map.values()).sort(
@@ -509,7 +487,7 @@
   function generateId() {
     return "cls_" + Math.random().toString(36).slice(2, 10) + "_" + Date.now().toString(36);
   }
-  figma.showUI(__html__, { width: 320, height: 560, title: "Class Manager" });
+  figma.showUI(__html__, { width: 320, height: 560, title: "Styles Managers" });
   var pinnedNode = null;
   function getValidNode(sel) {
     const node = sel[0];
@@ -530,10 +508,7 @@
   }
   (async () => {
     const local = await loadLocalClasses();
-    const shared = loadSharedClasses();
-    const merged = mergeClasses(local, shared);
-    await saveLocalClasses(merged);
-    figma.ui.postMessage({ type: "classes-loaded", classes: merged });
+    figma.ui.postMessage({ type: "classes-loaded", classes: local });
     sendSelection();
   })();
   figma.on("selectionchange", sendSelection);
@@ -573,7 +548,6 @@
           });
         }
         await saveLocalClasses(classes);
-        saveSharedClasses(classes);
         figma.ui.postMessage({ type: "classes-loaded", classes });
         figma.ui.postMessage({ type: "success", message: `Class "${msg.name}" saved.` });
       } catch (err) {
@@ -619,25 +593,24 @@
         }
       }
     }
-    if (msg.type === "sync") {
-      const local = await loadLocalClasses();
-      const shared = loadSharedClasses();
-      const merged = mergeClasses(local, shared);
-      await saveLocalClasses(merged);
-      saveSharedClasses(merged);
-      figma.ui.postMessage({ type: "classes-loaded", classes: merged });
-      figma.ui.postMessage({
-        type: "success",
-        message: `Synced. ${merged.length} class${merged.length !== 1 ? "es" : ""} in registry.`
-      });
-    }
     if (msg.type === "delete-class") {
       let classes = await loadLocalClasses();
       classes = classes.filter((c) => c.id !== msg.id);
       await saveLocalClasses(classes);
-      saveSharedClasses(classes);
       figma.ui.postMessage({ type: "classes-loaded", classes });
       figma.ui.postMessage({ type: "success", message: "Class deleted." });
+    }
+    if (msg.type === "import-classes") {
+      try {
+        if (!Array.isArray(msg.classes)) throw new Error("Invalid format");
+        const local = await loadLocalClasses();
+        const merged = mergeClasses(local, msg.classes);
+        await saveLocalClasses(merged);
+        figma.ui.postMessage({ type: "classes-loaded", classes: merged });
+        figma.ui.postMessage({ type: "success", message: `Imported presets successfully.` });
+      } catch (e) {
+        figma.ui.postMessage({ type: "error", message: `Import failed: ${e}` });
+      }
     }
   };
 })();

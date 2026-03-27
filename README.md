@@ -1,8 +1,8 @@
-# Class Manager (Figma Plugin)
+# Styles Managers (Figma Plugin)
 
-A powerful Figma plugin that enables "Class-based" design by treating node trees as reusable, serialized definitions. Save a complex frame once, and re-insert it anywhere in your document or sync it across your team.
+A powerful Figma plugin that enables "Class-based" design by treating node trees as reusable, serialized definitions. Save a complex frame once, and re-insert it anywhere in your document.
 
-![Class Manager UI Preview](https://github.com/user-attachments/assets/placeholder-ui.png)
+![Styles Managers UI Preview](https://github.com/user-attachments/assets/placeholder-ui.png)
 
 ## Features
 
@@ -11,8 +11,8 @@ A powerful Figma plugin that enables "Class-based" design by treating node trees
 - **Individual Stroke Support**: Preserves specific border weights for top, right, bottom, and left sides.
 - **Text Style & Variable Support**: Preserves text style references and complex text property variable bindings (font size, letter spacing, etc.).
 - **Variable Support**: Preserves variable bindings for colors, spacing, and numbers.
-- **Sync & Registry**: Uses Figma's `SharedPluginData` to synchronize class definitions across all users of a document.
 - **Local Persistence**: Stores your personal classes in `clientStorage` for use across different files.
+- **Export & Import**: Export your saved class presets to a `.json` file and import them anywhere.
 - **Group & Search**: Organize your classes with labels and find them instantly with the built-in search.
 
 ## Technology Stack
@@ -73,15 +73,16 @@ npm run dev
 ### Saving a Class
 1. Select a **Frame**, **Component**, or **Instance** on the Figma canvas.
 2. Give it a **Name** (e.g., `Card / Default`) and an optional **Label** for grouping.
-3. Click **Save Class**. The node tree is now serialized and stored in the registry.
+3. Click **Save Class**. The node tree is now serialized and stored locally.
 
 ### Inserting a Class
 1. Find the class in the list or use the search bar.
 2. Click the class to select it.
 3. Click **Insert Selected Class**. The node tree will be recreated at the center of your current viewport.
 
-### Syncing with the Team
-Click the **Sync** icon in the header to merge your local classes with the shared registry stored in the Figma file.
+### Exporting & Importing Presets
+1. To backup your classes, click the **Export** (download) icon in the header. This saves a `class-manager-presets.json` file.
+2. To restore or add presets, click the **Import** (upload) icon and select a valid presets JSON file. Imported classes will be merged with your locally stored ones.
 
 ## License
 

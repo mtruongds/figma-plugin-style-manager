@@ -111,8 +111,6 @@ interface ClassDefinition {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SHARED_PLUGIN_NAMESPACE = "class-manager";
-const SHARED_PLUGIN_KEY = "class-registry";
 const LOCAL_STORAGE_KEY = "local-classes";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -674,34 +672,12 @@ async function saveLocalClasses(classes: ClassDefinition[]): Promise<void> {
   await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes));
 }
 
-function loadSharedClasses(): ClassDefinition[] {
-  try {
-    const raw = figma.root.getSharedPluginData(SHARED_PLUGIN_NAMESPACE, SHARED_PLUGIN_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as ClassDefinition[];
-  } catch {
-    return [];
-  }
-}
-
-function saveSharedClasses(classes: ClassDefinition[]): void {
-  try {
-    figma.root.setSharedPluginData(
-      SHARED_PLUGIN_NAMESPACE,
-      SHARED_PLUGIN_KEY,
-      JSON.stringify(classes)
-    );
-  } catch (e) {
-    console.warn("[class-manager] shared save failed:", e);
-  }
-}
-
-function mergeClasses(local: ClassDefinition[], shared: ClassDefinition[]): ClassDefinition[] {
+function mergeClasses(local: ClassDefinition[], imported: ClassDefinition[]): ClassDefinition[] {
   const map = new Map<string, ClassDefinition>();
-  for (const cls of [...shared, ...local]) {
-    const existing = map.get(cls.name);
+  for (const cls of [...local, ...imported]) {
+    const existing = map.get(cls.id);
     if (!existing || new Date(cls.updatedAt) >= new Date(existing.updatedAt)) {
-      map.set(cls.name, cls);
+      map.set(cls.id, cls);
     }
   }
   return Array.from(map.values()).sort(
@@ -717,7 +693,7 @@ function generateId(): string {
 // Main plugin logic
 // ─────────────────────────────────────────────────────────────────────────────
 
-figma.showUI(__html__, { width: 320, height: 560, title: "Class Manager" });
+figma.showUI(__html__, { width: 320, height: 560, title: "Styles Managers" });
 
 let pinnedNode: any = null;
 
@@ -742,10 +718,7 @@ function sendSelection() {
 
 (async () => {
   const local = await loadLocalClasses();
-  const shared = loadSharedClasses();
-  const merged = mergeClasses(local, shared);
-  await saveLocalClasses(merged);
-  figma.ui.postMessage({ type: "classes-loaded", classes: merged });
+  figma.ui.postMessage({ type: "classes-loaded", classes: local });
   sendSelection();
 })();
 
@@ -789,7 +762,6 @@ figma.ui.onmessage = async (msg) => {
       }
 
       await saveLocalClasses(classes);
-      saveSharedClasses(classes);
       figma.ui.postMessage({ type: "classes-loaded", classes });
       figma.ui.postMessage({ type: "success", message: `Class "${msg.name}" saved.` });
     } catch (err) {
@@ -841,25 +813,24 @@ figma.ui.onmessage = async (msg) => {
     }
   }
 
-  if (msg.type === "sync") {
-    const local = await loadLocalClasses();
-    const shared = loadSharedClasses();
-    const merged = mergeClasses(local, shared);
-    await saveLocalClasses(merged);
-    saveSharedClasses(merged);
-    figma.ui.postMessage({ type: "classes-loaded", classes: merged });
-    figma.ui.postMessage({
-      type: "success",
-      message: `Synced. ${merged.length} class${merged.length !== 1 ? "es" : ""} in registry.`,
-    });
-  }
-
   if (msg.type === "delete-class") {
     let classes = await loadLocalClasses();
     classes = classes.filter((c) => c.id !== msg.id);
     await saveLocalClasses(classes);
-    saveSharedClasses(classes);
     figma.ui.postMessage({ type: "classes-loaded", classes });
     figma.ui.postMessage({ type: "success", message: "Class deleted." });
+  }
+
+  if (msg.type === "import-classes") {
+    try {
+      if (!Array.isArray(msg.classes)) throw new Error("Invalid format");
+      const local = await loadLocalClasses();
+      const merged = mergeClasses(local, msg.classes);
+      await saveLocalClasses(merged);
+      figma.ui.postMessage({ type: "classes-loaded", classes: merged });
+      figma.ui.postMessage({ type: "success", message: `Imported presets successfully.` });
+    } catch (e) {
+      figma.ui.postMessage({ type: "error", message: `Import failed: ${e}` });
+    }
   }
 };
