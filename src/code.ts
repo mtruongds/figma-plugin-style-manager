@@ -655,28 +655,42 @@ async function restoreNode(data: SerializedNode, parent: FrameNode | ComponentNo
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Storage
+// Storage  —  two scopes
+//   • personal  → figma.clientStorage  (device-local, private to this user)
+//   • global    → figma.root.setPluginData  (stored in the Figma file, shared
+//                 with all collaborators who open the plugin)
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function loadLocalClasses(): Promise<ClassDefinition[]> {
+const GLOBAL_STORAGE_KEY = "global-classes";
+
+// ── Personal  (clientStorage) ──────────────────────────────────────────────
+async function loadPersonalClasses(): Promise<ClassDefinition[]> {
   const raw = await figma.clientStorage.getAsync(LOCAL_STORAGE_KEY);
   if (!raw) return [];
-  try {
-    return JSON.parse(raw) as ClassDefinition[];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(raw) as ClassDefinition[]; } catch { return []; }
 }
 
-async function saveLocalClasses(classes: ClassDefinition[]): Promise<void> {
+async function savePersonalClasses(classes: ClassDefinition[]): Promise<void> {
   await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes));
 }
 
-function mergeClasses(local: ClassDefinition[], imported: ClassDefinition[]): ClassDefinition[] {
+// ── Global  (root plugin data) ─────────────────────────────────────────────
+function loadGlobalClasses(): ClassDefinition[] {
+  const raw = figma.root.getPluginData(GLOBAL_STORAGE_KEY);
+  if (!raw) return [];
+  try { return JSON.parse(raw) as ClassDefinition[]; } catch { return []; }
+}
+
+function saveGlobalClasses(classes: ClassDefinition[]): void {
+  figma.root.setPluginData(GLOBAL_STORAGE_KEY, JSON.stringify(classes));
+}
+
+// ── Shared helpers ──────────────────────────────────────────────────────────
+function mergeClasses(existing: ClassDefinition[], imported: ClassDefinition[]): ClassDefinition[] {
   const map = new Map<string, ClassDefinition>();
-  for (const cls of [...local, ...imported]) {
-    const existing = map.get(cls.id);
-    if (!existing || new Date(cls.updatedAt) >= new Date(existing.updatedAt)) {
+  for (const cls of [...existing, ...imported]) {
+    const prev = map.get(cls.id);
+    if (!prev || new Date(cls.updatedAt) >= new Date(prev.updatedAt)) {
       map.set(cls.id, cls);
     }
   }
@@ -716,15 +730,41 @@ function sendSelection() {
   });
 }
 
+// ── Helpers to load/save by scope ──────────────────────────────────────────
+async function loadClasses(scope: "global" | "personal"): Promise<ClassDefinition[]> {
+  if (scope === "global") return loadGlobalClasses();
+  return loadPersonalClasses();
+}
+
+async function saveClasses(scope: "global" | "personal", classes: ClassDefinition[]): Promise<void> {
+  if (scope === "global") saveGlobalClasses(classes);
+  else await savePersonalClasses(classes);
+}
+
+function notifyLoaded(scope: "global" | "personal", classes: ClassDefinition[]) {
+  figma.ui.postMessage({
+    type: scope === "global" ? "global-classes-loaded" : "personal-classes-loaded",
+    classes,
+  });
+}
+
+// ── Init ────────────────────────────────────────────────────────────────────
 (async () => {
-  const local = await loadLocalClasses();
-  figma.ui.postMessage({ type: "classes-loaded", classes: local });
+  const [globalCls, personalCls] = await Promise.all([
+    loadClasses("global"),
+    loadClasses("personal"),
+  ]);
+  figma.ui.postMessage({ type: "global-classes-loaded", classes: globalCls });
+  figma.ui.postMessage({ type: "personal-classes-loaded", classes: personalCls });
   sendSelection();
 })();
 
 figma.on("selectionchange", sendSelection);
 
+// ── Message handlers ─────────────────────────────────────────────────────────
 figma.ui.onmessage = async (msg) => {
+  const scope: "global" | "personal" = msg.scope === "personal" ? "personal" : "global";
+
   if (msg.type === "save-class") {
     try {
       const node = pinnedNode;
@@ -739,10 +779,9 @@ figma.ui.onmessage = async (msg) => {
       }
 
       const nodeTree = serializeNode(node);
-
-      const classes = await loadLocalClasses();
+      const classes = await loadClasses(scope);
       const now = new Date().toISOString();
-      const existingIdx = classes.findIndex((c) => c.name === msg.name);
+      const existingIdx = classes.findIndex((c: ClassDefinition) => c.name === msg.name);
 
       if (existingIdx >= 0) {
         classes[existingIdx].nodeTree = nodeTree;
@@ -761,9 +800,9 @@ figma.ui.onmessage = async (msg) => {
         });
       }
 
-      await saveLocalClasses(classes);
-      figma.ui.postMessage({ type: "classes-loaded", classes });
-      figma.ui.postMessage({ type: "success", message: `Class "${msg.name}" saved.` });
+      await saveClasses(scope, classes);
+      notifyLoaded(scope, classes);
+      figma.ui.postMessage({ type: "success", message: `Class "${msg.name}" saved (${scope}).` });
     } catch (err) {
       figma.ui.postMessage({ type: "error", message: `Save failed: ${String(err)}` });
     }
@@ -771,8 +810,8 @@ figma.ui.onmessage = async (msg) => {
 
   if (msg.type === "insert-class") {
     try {
-      const classes = await loadLocalClasses();
-      const cls = classes.find((c) => c.id === msg.id);
+      const classes = await loadClasses(scope);
+      const cls = classes.find((c: ClassDefinition) => c.id === msg.id);
       if (!cls) {
         figma.ui.postMessage({ type: "error", message: "Class not found." });
         return;
@@ -814,23 +853,24 @@ figma.ui.onmessage = async (msg) => {
   }
 
   if (msg.type === "delete-class") {
-    let classes = await loadLocalClasses();
-    classes = classes.filter((c) => c.id !== msg.id);
-    await saveLocalClasses(classes);
-    figma.ui.postMessage({ type: "classes-loaded", classes });
+    let classes = await loadClasses(scope);
+    classes = classes.filter((c: ClassDefinition) => c.id !== msg.id);
+    await saveClasses(scope, classes);
+    notifyLoaded(scope, classes);
     figma.ui.postMessage({ type: "success", message: "Class deleted." });
   }
 
   if (msg.type === "import-classes") {
     try {
       if (!Array.isArray(msg.classes)) throw new Error("Invalid format");
-      const local = await loadLocalClasses();
-      const merged = mergeClasses(local, msg.classes);
-      await saveLocalClasses(merged);
-      figma.ui.postMessage({ type: "classes-loaded", classes: merged });
-      figma.ui.postMessage({ type: "success", message: `Imported presets successfully.` });
+      const existing = await loadClasses(scope);
+      const merged = mergeClasses(existing, msg.classes as ClassDefinition[]);
+      await saveClasses(scope, merged);
+      notifyLoaded(scope, merged);
+      figma.ui.postMessage({ type: "success", message: `Imported ${scope} presets successfully.` });
     } catch (e) {
       figma.ui.postMessage({ type: "error", message: `Import failed: ${e}` });
     }
   }
 };
+

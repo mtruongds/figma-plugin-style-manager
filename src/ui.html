@@ -53,6 +53,14 @@
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Tab accent colors */
+    --global-accent: hsl(217 91% 60%);
+    --global-accent-muted: hsl(217 91% 60% / 0.12);
+    --global-accent-border: hsl(217 91% 60% / 0.3);
+    --personal-accent: hsl(271 81% 65%);
+    --personal-accent-muted: hsl(271 81% 65% / 0.12);
+    --personal-accent-border: hsl(271 81% 65% / 0.3);
   }
 
   body {
@@ -89,6 +97,76 @@
     letter-spacing: -0.01em;
   }
   .header-title svg { color: var(--muted-foreground); }
+
+  /* ── Tab nav ── */
+  .tab-nav {
+    display: flex;
+    background: var(--sidebar);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    padding: 0 12px;
+    gap: 2px;
+  }
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px 7px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    color: var(--muted-foreground);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+    outline: none;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    user-select: none;
+    border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0 0;
+  }
+  .tab-btn:hover {
+    color: var(--foreground);
+    background: hsl(240 3.7% 12%);
+  }
+  .tab-btn.active[data-tab="global"] {
+    color: var(--global-accent);
+    border-bottom-color: var(--global-accent);
+  }
+  .tab-btn.active[data-tab="personal"] {
+    color: var(--personal-accent);
+    border-bottom-color: var(--personal-accent);
+  }
+  .tab-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: currentColor;
+    opacity: 0.6;
+  }
+  .tab-btn.active .tab-dot { opacity: 1; }
+
+  /* Tab actions (export/import) in tab bar */
+  .tab-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  /* ── Tab panels ── */
+  .tab-panel {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .tab-panel.active { display: flex; }
 
   /* ── Button styles (shadcn Button variants) ── */
   .btn {
@@ -167,8 +245,8 @@
 
   /* Icon-only button */
   .btn-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     background: transparent;
     border: 1px solid var(--border);
@@ -179,6 +257,7 @@
     align-items: center;
     justify-content: center;
     transition: all var(--transition-fast);
+    flex-shrink: 0;
   }
   .btn-icon:hover {
     background: var(--accent);
@@ -187,6 +266,18 @@
   }
   .btn-icon.spinning svg { animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Scope-tinted icon buttons */
+  .btn-icon.global-tint:hover {
+    color: var(--global-accent);
+    border-color: var(--global-accent-border);
+    background: var(--global-accent-muted);
+  }
+  .btn-icon.personal-tint:hover {
+    color: var(--personal-accent);
+    border-color: var(--personal-accent-border);
+    background: var(--personal-accent-muted);
+  }
 
   /* Destructive ghost (for delete) */
   .btn-destructive-ghost {
@@ -278,6 +369,21 @@
     background: hsl(240 3.7% 28%);
   }
 
+  /* ── Scope info banner ── */
+  .scope-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .scope-banner svg { flex-shrink: 0; }
+  .scope-banner.global-banner { color: var(--global-accent); background: var(--global-accent-muted); }
+  .scope-banner.personal-banner { color: var(--personal-accent); background: var(--personal-accent-muted); }
+
   /* ── Empty state (shadcn Empty pattern) ── */
   .empty-state {
     display: flex;
@@ -355,6 +461,13 @@
     width: 2px;
     background: var(--primary);
     border-radius: 0 2px 2px 0;
+  }
+  /* Scope accent on selected item */
+  .tab-panel[data-scope="global"] .class-item.selected::before {
+    background: var(--global-accent);
+  }
+  .tab-panel[data-scope="personal"] .class-item.selected::before {
+    background: var(--personal-accent);
   }
 
   /* Class icon (Avatar-style) */
@@ -576,83 +689,196 @@
     </svg>
     Styles Managers
   </div>
-  <div style="display: flex; gap: 4px;">
-    <button class="btn btn-icon" id="exportBtn" title="Export Presets">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+</div>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" id="tabGlobal" data-tab="global">
+    <span class="tab-dot"></span>
+    Global
+  </button>
+  <button class="tab-btn" id="tabPersonal" data-tab="personal">
+    <span class="tab-dot"></span>
+    Personal
+  </button>
+
+  <!-- Tab-scoped Export/Import (shown per active tab) -->
+  <div class="tab-actions">
+    <!-- Global export/import -->
+    <button class="btn btn-icon global-tint" id="globalExportBtn" title="Export Global Presets">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" x2="12" y1="15" y2="3"/>
       </svg>
     </button>
-    <button class="btn btn-icon" id="importBtn" title="Import Presets">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button class="btn btn-icon global-tint" id="globalImportBtn" title="Import Global Presets">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="17 8 12 3 7 8"/>
         <line x1="12" x2="12" y1="3" y2="15"/>
       </svg>
     </button>
-    <input type="file" id="importInput" accept=".json" style="display: none;" />
-  </div>
-</div>
-
-<!-- Search (Input with icon) -->
-<div class="search-wrap">
-  <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-    <circle cx="11" cy="11" r="8"/>
-    <path d="m21 21-4.3-4.3"/>
-  </svg>
-  <input class="search-input" id="searchInput" type="text" placeholder="Search classes…" />
-</div>
-
-<!-- List (ScrollArea) -->
-<div class="list-container" id="classList">
-  <div class="empty-state" id="emptyState">
-    <div class="empty-state-icon">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1"/>
-        <rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/>
-        <rect x="14" y="14" width="7" height="7" rx="1"/>
+    <!-- Personal export/import -->
+    <button class="btn btn-icon personal-tint" id="personalExportBtn" title="Export Personal Presets" style="display:none;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" x2="12" y1="15" y2="3"/>
       </svg>
-    </div>
-    <div class="empty-state-title">No classes yet</div>
-    <div class="empty-state-description">Select a frame on canvas and save it as a reusable class below.</div>
+    </button>
+    <button class="btn btn-icon personal-tint" id="personalImportBtn" title="Import Personal Presets" style="display:none;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" x2="12" y1="3" y2="15"/>
+      </svg>
+    </button>
   </div>
 </div>
 
-<!-- Insert bar -->
-<div class="insert-bar">
-  <button class="btn btn-primary" id="insertBtn" disabled>Insert Selected Class</button>
-</div>
+<!-- Hidden file inputs -->
+<input type="file" id="globalImportInput" accept=".json" style="display: none;" />
+<input type="file" id="personalImportInput" accept=".json" style="display: none;" />
 
-<!-- Save section -->
-<div class="save-section">
-  <div class="save-label">Save Selection as Class</div>
+<!-- ═══════════════════════════════════ GLOBAL TAB ═══════════════════════════════════ -->
+<div class="tab-panel active" id="panelGlobal" data-scope="global">
 
-  <!-- Selection indicator -->
-  <div class="selection-indicator" id="selectionIndicator">
-    <div class="selection-dot"></div>
-    <span class="selection-text" id="selectionText">No frame selected on canvas</span>
-  </div>
-
-  <div class="form-row">
-    <div class="field">
-      <label class="field-label" for="nameInput">Name</label>
-      <input class="input" id="nameInput" type="text" placeholder="e.g. Container" />
-    </div>
-    <div class="field">
-      <label class="field-label" for="labelInput">Label</label>
-      <input class="input" id="labelInput" type="text" placeholder="e.g. Layout" />
-    </div>
-  </div>
-
-  <button class="btn btn-outline" id="saveBtn" style="width: 100%;">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 5v14"/>
-      <path d="M5 12h14"/>
+  <!-- Scope banner -->
+  <div class="scope-banner global-banner">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+      <path d="M2 12h20"/>
     </svg>
-    Save Class
-  </button>
+    Shared with all collaborators in this file
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/>
+      <path d="m21 21-4.3-4.3"/>
+    </svg>
+    <input class="search-input" id="globalSearchInput" type="text" placeholder="Search global classes…" />
+  </div>
+
+  <!-- List -->
+  <div class="list-container" id="globalClassList">
+    <div class="empty-state" id="globalEmptyState">
+      <div class="empty-state-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+          <path d="M2 12h20"/>
+        </svg>
+      </div>
+      <div class="empty-state-title">No global classes yet</div>
+      <div class="empty-state-description">Save a class below — it will be available to all collaborators in this Figma file.</div>
+    </div>
+  </div>
+
+  <!-- Insert bar -->
+  <div class="insert-bar">
+    <button class="btn btn-primary" id="globalInsertBtn" disabled>Insert Selected Class</button>
+  </div>
+
+  <!-- Save section -->
+  <div class="save-section">
+    <div class="save-label">Save Selection as Global Class</div>
+
+    <div class="selection-indicator" id="globalSelectionIndicator">
+      <div class="selection-dot"></div>
+      <span class="selection-text" id="globalSelectionText">No frame selected on canvas</span>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label class="field-label" for="globalNameInput">Name</label>
+        <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="globalLabelInput">Label</label>
+        <input class="input" id="globalLabelInput" type="text" placeholder="e.g. Layout" />
+      </div>
+    </div>
+
+    <button class="btn btn-outline" id="globalSaveBtn" style="width: 100%;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+      </svg>
+      Save as Global Class
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ PERSONAL TAB ═══════════════════════════════════ -->
+<div class="tab-panel" id="panelPersonal" data-scope="personal">
+
+  <!-- Scope banner -->
+  <div class="scope-banner personal-banner">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    Only visible to you on this device
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/>
+      <path d="m21 21-4.3-4.3"/>
+    </svg>
+    <input class="search-input" id="personalSearchInput" type="text" placeholder="Search personal classes…" />
+  </div>
+
+  <!-- List -->
+  <div class="list-container" id="personalClassList">
+    <div class="empty-state" id="personalEmptyState">
+      <div class="empty-state-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="empty-state-title">No personal classes yet</div>
+      <div class="empty-state-description">Save a class below — it will be stored locally on your device only.</div>
+    </div>
+  </div>
+
+  <!-- Insert bar -->
+  <div class="insert-bar">
+    <button class="btn btn-primary" id="personalInsertBtn" disabled>Insert Selected Class</button>
+  </div>
+
+  <!-- Save section -->
+  <div class="save-section">
+    <div class="save-label">Save Selection as Personal Class</div>
+
+    <div class="selection-indicator" id="personalSelectionIndicator">
+      <div class="selection-dot"></div>
+      <span class="selection-text" id="personalSelectionText">No frame selected on canvas</span>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label class="field-label" for="personalNameInput">Name</label>
+        <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="personalLabelInput">Label</label>
+        <input class="input" id="personalLabelInput" type="text" placeholder="e.g. Layout" />
+      </div>
+    </div>
+
+    <button class="btn btn-outline" id="personalSaveBtn" style="width: 100%;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+      </svg>
+      Save as Personal Class
+    </button>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -662,9 +888,12 @@
 </div>
 
 <script>
-  let allClasses = [];
-  let selectedId = null;
+  let globalClasses = [];
+  let personalClasses = [];
+  let globalSelectedId = null;
+  let personalSelectedId = null;
   let hasValidSelection = false;
+  let activeTab = "global"; // "global" | "personal"
 
   // ── Messaging ──
   const post = (msg) => parent.postMessage({ pluginMessage: msg }, "*");
@@ -673,33 +902,69 @@
     const msg = event.data.pluginMessage;
     if (!msg) return;
 
-    if (msg.type === "classes-loaded") {
-      allClasses = msg.classes || [];
-      renderList(document.getElementById("searchInput").value.trim().toLowerCase());
+    if (msg.type === "global-classes-loaded") {
+      globalClasses = msg.classes || [];
+      renderList("global", document.getElementById("globalSearchInput").value.trim().toLowerCase());
+    }
+    if (msg.type === "personal-classes-loaded") {
+      personalClasses = msg.classes || [];
+      renderList("personal", document.getElementById("personalSearchInput").value.trim().toLowerCase());
     }
     if (msg.type === "selection-changed") {
       hasValidSelection = msg.hasValidSelection;
-      const indicator = document.getElementById("selectionIndicator");
-      const text = document.getElementById("selectionText");
-      if (msg.hasValidSelection) {
-        indicator.classList.add("has-selection");
-        text.textContent = msg.nodeName || "Frame selected";
-      } else {
-        indicator.classList.remove("has-selection");
-        text.textContent = "No frame selected on canvas";
-      }
+      // Update both panels' selection indicators
+      ["global", "personal"].forEach((scope) => {
+        const indicator = document.getElementById(scope + "SelectionIndicator");
+        const text = document.getElementById(scope + "SelectionText");
+        if (msg.hasValidSelection) {
+          indicator.classList.add("has-selection");
+          text.textContent = msg.nodeName || "Frame selected";
+        } else {
+          indicator.classList.remove("has-selection");
+          text.textContent = "No frame selected on canvas";
+        }
+      });
     }
     if (msg.type === "success") showToast(msg.message, "success");
     if (msg.type === "error") showToast(msg.message, "error");
   };
 
-  // ── Render ──
-  function renderList(filter = "") {
-    const list = document.getElementById("classList");
-    const empty = document.getElementById("emptyState");
-    const insertBtn = document.getElementById("insertBtn");
+  // ── Tab switching ──
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+    });
+    document.querySelectorAll(".tab-panel").forEach((panel) => {
+      panel.classList.toggle("active", panel.id === "panel" + capitalize(tab));
+    });
 
-    let items = allClasses;
+    // Show/hide scope-specific export/import buttons
+    const isGlobal = tab === "global";
+    document.getElementById("globalExportBtn").style.display = isGlobal ? "" : "none";
+    document.getElementById("globalImportBtn").style.display = isGlobal ? "" : "none";
+    document.getElementById("personalExportBtn").style.display = isGlobal ? "none" : "";
+    document.getElementById("personalImportBtn").style.display = isGlobal ? "none" : "";
+  }
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  document.getElementById("tabGlobal").addEventListener("click", () => switchTab("global"));
+  document.getElementById("tabPersonal").addEventListener("click", () => switchTab("personal"));
+
+  // ── Render ──
+  function renderList(scope, filter = "") {
+    const classes = scope === "global" ? globalClasses : personalClasses;
+    const listId = scope + "ClassList";
+    const emptyId = scope + "EmptyState";
+    const insertBtnId = scope + "InsertBtn";
+    const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
+
+    const list = document.getElementById(listId);
+    const empty = document.getElementById(emptyId);
+    const insertBtn = document.getElementById(insertBtnId);
+
+    let items = classes;
     if (filter) {
       items = items.filter(
         (c) =>
@@ -741,16 +1006,17 @@
       group.appendChild(header);
 
       for (const cls of groups[key]) {
-        group.appendChild(createClassItem(cls));
+        group.appendChild(createClassItem(cls, scope));
       }
 
       list.appendChild(group);
     }
 
-    insertBtn.disabled = !selectedId || !allClasses.find((c) => c.id === selectedId);
+    insertBtn.disabled = !selectedId || !classes.find((c) => c.id === selectedId);
   }
 
-  function createClassItem(cls) {
+  function createClassItem(cls, scope) {
+    const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
     const item = document.createElement("div");
     item.className = "class-item" + (cls.id === selectedId ? " selected" : "");
     item.dataset.id = cls.id;
@@ -785,10 +1051,14 @@
     delBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (confirm(`Delete class "${cls.name}"?`)) {
-        post({ type: "delete-class", id: cls.id });
-        if (selectedId === cls.id) {
-          selectedId = null;
-          document.getElementById("insertBtn").disabled = true;
+        post({ type: "delete-class", id: cls.id, scope });
+        if (scope === "global" && globalSelectedId === cls.id) {
+          globalSelectedId = null;
+          document.getElementById("globalInsertBtn").disabled = true;
+        }
+        if (scope === "personal" && personalSelectedId === cls.id) {
+          personalSelectedId = null;
+          document.getElementById("personalInsertBtn").disabled = true;
         }
       }
     });
@@ -799,14 +1069,21 @@
     item.appendChild(delBtn);
 
     item.addEventListener("click", () => {
-      selectedId = cls.id;
-      document.getElementById("insertBtn").disabled = false;
-      // Highlight
-      document.querySelectorAll(".class-item").forEach((el) => el.classList.remove("selected"));
+      if (scope === "global") {
+        globalSelectedId = cls.id;
+        document.getElementById("globalInsertBtn").disabled = false;
+        document.getElementById("globalNameInput").value = cls.name;
+        document.getElementById("globalLabelInput").value = cls.label || "";
+      } else {
+        personalSelectedId = cls.id;
+        document.getElementById("personalInsertBtn").disabled = false;
+        document.getElementById("personalNameInput").value = cls.name;
+        document.getElementById("personalLabelInput").value = cls.label || "";
+      }
+      // Highlight in this scope
+      document.querySelectorAll("#panel" + capitalize(scope) + " .class-item")
+        .forEach((el) => el.classList.remove("selected"));
       item.classList.add("selected");
-      // Pre-fill name for quick re-save
-      document.getElementById("nameInput").value = cls.name;
-      document.getElementById("labelInput").value = cls.label || "";
     });
 
     return item;
@@ -825,59 +1102,91 @@
     return d.toLocaleDateString();
   }
 
-  // ── Actions ──
-  document.getElementById("insertBtn").addEventListener("click", () => {
-    if (!selectedId) return;
-    post({ type: "insert-class", id: selectedId });
+  // ── Insert actions ──
+  document.getElementById("globalInsertBtn").addEventListener("click", () => {
+    if (!globalSelectedId) return;
+    post({ type: "insert-class", id: globalSelectedId, scope: "global" });
   });
 
-  document.getElementById("saveBtn").addEventListener("click", () => {
-    const name = document.getElementById("nameInput").value.trim();
-    const label = document.getElementById("labelInput").value.trim();
+  document.getElementById("personalInsertBtn").addEventListener("click", () => {
+    if (!personalSelectedId) return;
+    post({ type: "insert-class", id: personalSelectedId, scope: "personal" });
+  });
+
+  // ── Save actions ──
+  document.getElementById("globalSaveBtn").addEventListener("click", () => {
+    const name = document.getElementById("globalNameInput").value.trim();
+    const label = document.getElementById("globalLabelInput").value.trim();
     if (!name) { showToast("Enter a class name.", "error"); return; }
-    post({ type: "save-class", name, label });
+    post({ type: "save-class", name, label, scope: "global" });
   });
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    if (allClasses.length === 0) {
-      showToast("No classes to export.", "error");
-      return;
-    }
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allClasses, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "class-manager-presets.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  document.getElementById("personalSaveBtn").addEventListener("click", () => {
+    const name = document.getElementById("personalNameInput").value.trim();
+    const label = document.getElementById("personalLabelInput").value.trim();
+    if (!name) { showToast("Enter a class name.", "error"); return; }
+    post({ type: "save-class", name, label, scope: "personal" });
   });
 
-  document.getElementById("importBtn").addEventListener("click", () => {
-    document.getElementById("importInput").click();
+  // ── Export actions ──
+  document.getElementById("globalExportBtn").addEventListener("click", () => {
+    if (globalClasses.length === 0) { showToast("No global classes to export.", "error"); return; }
+    downloadJSON(globalClasses, "global-class-presets.json");
   });
 
-  document.getElementById("importInput").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  document.getElementById("personalExportBtn").addEventListener("click", () => {
+    if (personalClasses.length === 0) { showToast("No personal classes to export.", "error"); return; }
+    downloadJSON(personalClasses, "personal-class-presets.json");
+  });
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const importedData = JSON.parse(event.target.result);
-        if (!Array.isArray(importedData)) {
-          throw new Error("Invalid preset format");
+  function downloadJSON(data, filename) {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const a = document.createElement("a");
+    a.setAttribute("href", dataStr);
+    a.setAttribute("download", filename);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  // ── Import actions ──
+  document.getElementById("globalImportBtn").addEventListener("click", () => {
+    document.getElementById("globalImportInput").click();
+  });
+
+  document.getElementById("personalImportBtn").addEventListener("click", () => {
+    document.getElementById("personalImportInput").click();
+  });
+
+  function setupImportInput(inputId, scope) {
+    document.getElementById(inputId).addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target.result);
+          if (!Array.isArray(importedData)) throw new Error("Invalid preset format");
+          post({ type: "import-classes", classes: importedData, scope });
+        } catch (err) {
+          showToast("Failed to parse JSON file.", "error");
         }
-        post({ type: "import-classes", classes: importedData });
-      } catch (err) {
-        showToast("Failed to parse JSON file.", "error");
-      }
-      e.target.value = ""; // reset input
-    };
-    reader.readAsText(file);
+        e.target.value = "";
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  setupImportInput("globalImportInput", "global");
+  setupImportInput("personalImportInput", "personal");
+
+  // ── Search ──
+  document.getElementById("globalSearchInput").addEventListener("input", (e) => {
+    renderList("global", e.target.value.trim().toLowerCase());
   });
 
-  document.getElementById("searchInput").addEventListener("input", (e) => {
-    renderList(e.target.value.trim().toLowerCase());
+  document.getElementById("personalSearchInput").addEventListener("input", (e) => {
+    renderList("personal", e.target.value.trim().toLowerCase());
   });
 
   // ── Toast ──
@@ -890,7 +1199,6 @@
     toastMsg.textContent = message;
     toast.className = "toast " + type;
 
-    // Set icon
     if (type === "success") {
       toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
     } else {
