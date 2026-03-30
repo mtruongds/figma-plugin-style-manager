@@ -1,1215 +1,1707 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Styles Managers</title>
-<style>
-  /* ── Reset ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  /* ── shadcn/ui Design Tokens ── */
-  :root {
-    /* Neutral scale (zinc) */
-    --background: hsl(240 10% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(240 10% 3.9%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(240 10% 3.9%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(240 5.9% 10%);
-    --secondary: hsl(240 3.7% 15.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(240 3.7% 15.9%);
-    --muted-foreground: hsl(240 5% 64.9%);
-    --accent: hsl(240 3.7% 15.9%);
-    --accent-foreground: hsl(0 0% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(240 3.7% 15.9%);
-    --input: hsl(240 3.7% 15.9%);
-    --ring: hsl(240 4.9% 83.9%);
-    --success: hsl(142 76% 36%);
-    --success-foreground: hsl(0 0% 98%);
-    --warning: hsl(48 96% 53%);
-    --warning-foreground: hsl(0 0% 0%);
-
-    /* Radius */
-    --radius: 0.5rem;
-
-    /* Font */
-    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
-
-    /* Sidebar-specific tokens */
-    --sidebar: hsl(240 5.9% 10%);
-    --sidebar-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-border: hsl(240 3.7% 15.9%);
-    --sidebar-accent: hsl(240 3.7% 15.9%);
-    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-
-    /* Animation */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* Tab accent colors */
-    --global-accent: hsl(217 91% 60%);
-    --global-accent-muted: hsl(217 91% 60% / 0.12);
-    --global-accent-border: hsl(217 91% 60% / 0.3);
-    --personal-accent: hsl(271 81% 65%);
-    --personal-accent-muted: hsl(271 81% 65% / 0.12);
-    --personal-accent-border: hsl(271 81% 65% / 0.3);
-  }
-
-  body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans);
-    font-size: 13px;
-    line-height: 1.5;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* ── Header (shadcn Sidebar Header pattern) ── */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    background: var(--sidebar);
-  }
-  .header-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--sidebar-foreground);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: -0.01em;
-  }
-  .header-title svg { color: var(--muted-foreground); }
-
-  /* ── Tab nav ── */
-  .tab-nav {
-    display: flex;
-    background: var(--sidebar);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    padding: 0 12px;
-    gap: 2px;
-  }
-  .tab-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px 7px;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: var(--font-sans);
-    color: var(--muted-foreground);
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: color var(--transition-fast), border-color var(--transition-fast);
-    outline: none;
-    margin-bottom: -1px;
-    white-space: nowrap;
-    user-select: none;
-    border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0 0;
-  }
-  .tab-btn:hover {
-    color: var(--foreground);
-    background: hsl(240 3.7% 12%);
-  }
-  .tab-btn.active[data-tab="global"] {
-    color: var(--global-accent);
-    border-bottom-color: var(--global-accent);
-  }
-  .tab-btn.active[data-tab="personal"] {
-    color: var(--personal-accent);
-    border-bottom-color: var(--personal-accent);
-  }
-  .tab-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: currentColor;
-    opacity: 0.6;
-  }
-  .tab-btn.active .tab-dot { opacity: 1; }
-
-  /* Tab actions (export/import) in tab bar */
-  .tab-actions {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-    align-items: center;
-    padding: 4px 0;
-  }
-
-  /* ── Tab panels ── */
-  .tab-panel {
-    display: none;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    min-height: 0;
-  }
-  .tab-panel.active { display: flex; }
-
-  /* ── Button styles (shadcn Button variants) ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: calc(var(--radius) - 2px);
-    font-size: 13px;
-    font-weight: 500;
-    font-family: var(--font-sans);
-    cursor: pointer;
-    transition: background var(--transition-fast), color var(--transition-fast),
-                border-color var(--transition-fast), opacity var(--transition-fast),
-                box-shadow var(--transition-fast);
-    outline: none;
-    white-space: nowrap;
-    user-select: none;
-  }
-  .btn:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
-  }
-  .btn:disabled {
-    pointer-events: none;
-    opacity: 0.5;
-  }
-
-  /* Default / Primary */
-  .btn-primary {
-    background: var(--primary);
-    color: var(--primary-foreground);
-    border: none;
-    padding: 8px 16px;
-    font-weight: 600;
-  }
-  .btn-primary:hover:not(:disabled) {
-    background: var(--primary);
-    opacity: 0.9;
-  }
-
-  /* Secondary */
-  .btn-secondary {
-    background: var(--secondary);
-    color: var(--secondary-foreground);
-    border: 1px solid var(--border);
-    padding: 8px 16px;
-  }
-  .btn-secondary:hover:not(:disabled) {
-    background: hsl(240 3.7% 20%);
-  }
-
-  /* Ghost */
-  .btn-ghost {
-    background: transparent;
-    color: var(--muted-foreground);
-    border: none;
-    padding: 6px;
-  }
-  .btn-ghost:hover {
-    background: var(--accent);
-    color: var(--accent-foreground);
-  }
-
-  /* Outline */
-  .btn-outline {
-    background: transparent;
-    color: var(--foreground);
-    border: 1px solid var(--input);
-    padding: 8px 16px;
-  }
-  .btn-outline:hover:not(:disabled) {
-    background: var(--accent);
-    color: var(--accent-foreground);
-  }
-
-  /* Icon-only button */
-  .btn-icon {
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted-foreground);
-    border-radius: calc(var(--radius) - 2px);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition-fast);
-    flex-shrink: 0;
-  }
-  .btn-icon:hover {
-    background: var(--accent);
-    color: var(--accent-foreground);
-    border-color: hsl(240 3.7% 20%);
-  }
-  .btn-icon.spinning svg { animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Scope-tinted icon buttons */
-  .btn-icon.global-tint:hover {
-    color: var(--global-accent);
-    border-color: var(--global-accent-border);
-    background: var(--global-accent-muted);
-  }
-  .btn-icon.personal-tint:hover {
-    color: var(--personal-accent);
-    border-color: var(--personal-accent-border);
-    background: var(--personal-accent-muted);
-  }
-
-  /* Destructive ghost (for delete) */
-  .btn-destructive-ghost {
-    background: transparent;
-    border: none;
-    color: var(--muted-foreground);
-    padding: 4px;
-    border-radius: calc(var(--radius) - 2px);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    transition: all var(--transition-fast);
-    opacity: 0;
-    flex-shrink: 0;
-  }
-  .btn-destructive-ghost:hover {
-    color: hsl(0 62.8% 50%);
-    background: hsl(0 62.8% 30.6% / 0.15);
-  }
-
-  /* ── Input (shadcn Input) ── */
-  .input {
-    flex: 1;
-    min-width: 0;
-    background: var(--background);
-    border: 1px solid var(--input);
-    border-radius: calc(var(--radius) - 2px);
-    color: var(--foreground);
-    padding: 6px 10px;
-    font-size: 13px;
-    font-family: var(--font-sans);
-    line-height: 1.5;
-    outline: none;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  }
-  .input:focus {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 2px hsl(240 4.9% 83.9% / 0.15);
-  }
-  .input::placeholder { color: var(--muted-foreground); }
-
-  /* Search input with icon */
-  .search-wrap {
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    position: relative;
-  }
-  .search-wrap .search-icon {
-    position: absolute;
-    left: 26px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted-foreground);
-    pointer-events: none;
-  }
-  .search-input {
-    width: 100%;
-    background: var(--secondary);
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 2px);
-    color: var(--foreground);
-    padding: 6px 10px 6px 32px;
-    font-size: 13px;
-    font-family: var(--font-sans);
-    outline: none;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  }
-  .search-input:focus {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 2px hsl(240 4.9% 83.9% / 0.15);
-  }
-  .search-input::placeholder { color: var(--muted-foreground); }
-
-  /* ── ScrollArea (shadcn ScrollArea) ── */
-  .list-container {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: hsl(240 3.7% 22%) transparent;
-  }
-  .list-container::-webkit-scrollbar { width: 6px; }
-  .list-container::-webkit-scrollbar-track { background: transparent; }
-  .list-container::-webkit-scrollbar-thumb {
-    background: hsl(240 3.7% 22%);
-    border-radius: 3px;
-  }
-  .list-container::-webkit-scrollbar-thumb:hover {
-    background: hsl(240 3.7% 28%);
-  }
-
-  /* ── Scope info banner ── */
-  .scope-banner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
-    font-size: 11px;
-    color: var(--muted-foreground);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .scope-banner svg { flex-shrink: 0; }
-  .scope-banner.global-banner { color: var(--global-accent); background: var(--global-accent-muted); }
-  .scope-banner.personal-banner { color: var(--personal-accent); background: var(--personal-accent-muted); }
-
-  /* ── Empty state (shadcn Empty pattern) ── */
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 12px;
-    color: var(--muted-foreground);
-    text-align: center;
-    padding: 32px 24px;
-  }
-  .empty-state-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius);
-    background: var(--secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted-foreground);
-  }
-  .empty-state-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--foreground);
-  }
-  .empty-state-description {
-    font-size: 12px;
-    color: var(--muted-foreground);
-    max-width: 200px;
-    line-height: 1.5;
-  }
-
-  /* ── Label group headers ── */
-  .label-group { margin-bottom: 2px; }
-  .label-header {
-    padding: 8px 16px 4px;
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted-foreground);
-    position: sticky;
-    top: 0;
-    background: var(--background);
-    z-index: 1;
-  }
-
-  /* ── Class item (shadcn Sidebar MenuItem pattern) ── */
-  .class-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    cursor: pointer;
-    border-radius: calc(var(--radius) - 2px);
-    margin: 1px 8px;
-    transition: background var(--transition-fast);
-    gap: 10px;
-    position: relative;
-  }
-  .class-item:hover {
-    background: var(--sidebar-accent);
-  }
-  .class-item:hover .btn-destructive-ghost { opacity: 1; }
-  .class-item.selected {
-    background: var(--sidebar-accent);
-  }
-  .class-item.selected::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 6px;
-    bottom: 6px;
-    width: 2px;
-    background: var(--primary);
-    border-radius: 0 2px 2px 0;
-  }
-  /* Scope accent on selected item */
-  .tab-panel[data-scope="global"] .class-item.selected::before {
-    background: var(--global-accent);
-  }
-  .tab-panel[data-scope="personal"] .class-item.selected::before {
-    background: var(--personal-accent);
-  }
-
-  /* Class icon (Avatar-style) */
-  .class-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--secondary);
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted-foreground);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    font-family: var(--font-mono);
-    transition: all var(--transition-fast);
-  }
-  .class-item.selected .class-icon {
-    background: hsl(240 3.7% 20%);
-    color: var(--foreground);
-    border-color: hsl(240 3.7% 25%);
-  }
-
-  /* Class info */
-  .class-info { flex: 1; min-width: 0; }
-  .class-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--foreground);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.3;
-  }
-  .class-meta {
-    font-size: 11px;
-    color: var(--muted-foreground);
-    margin-top: 1px;
-    line-height: 1.3;
-  }
-
-  /* Badge (shadcn Badge variant=secondary) */
-  .version-badge {
-    font-size: 10px;
-    font-weight: 500;
-    background: var(--secondary);
-    color: var(--muted-foreground);
-    border: 1px solid var(--border);
-    border-radius: 9999px;
-    padding: 1px 7px;
-    flex-shrink: 0;
-    font-family: var(--font-mono);
-    line-height: 1.4;
-  }
-
-  /* ── Footer / Insert bar ── */
-  .insert-bar {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .insert-bar .btn-primary {
-    width: 100%;
-    border-radius: calc(var(--radius) - 2px);
-  }
-
-  /* ── Save section (Card pattern) ── */
-  .save-section {
-    border-top: 1px solid var(--border);
-    padding: 14px 16px;
-    flex-shrink: 0;
-    background: var(--sidebar);
-  }
-  .save-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--foreground);
-    margin-bottom: 10px;
-    letter-spacing: -0.01em;
-  }
-  .form-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .field { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-  .field-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--foreground);
-  }
-
-  /* ── Selection indicator (Alert-like) ── */
-  .selection-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: calc(var(--radius) - 2px);
-    border: 1px solid var(--border);
-    background: var(--background);
-    margin-bottom: 10px;
-    font-size: 12px;
-  }
-  .selection-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: var(--muted-foreground);
-    transition: background var(--transition-base), box-shadow var(--transition-base);
-  }
-  .selection-indicator.has-selection .selection-dot {
-    background: var(--success);
-    box-shadow: 0 0 6px hsl(142 76% 36% / 0.4);
-  }
-  .selection-indicator.has-selection {
-    border-color: hsl(142 76% 36% / 0.3);
-  }
-  .selection-text {
-    color: var(--muted-foreground);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-  }
-  .selection-indicator.has-selection .selection-text {
-    color: hsl(142 76% 50%);
-  }
-
-  /* ── Separator ── */
-  .separator {
-    height: 1px;
-    background: var(--border);
-    margin: 8px 0;
-    flex-shrink: 0;
-  }
-
-  /* ── Toast (shadcn Sonner-inspired) ── */
-  .toast {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    padding: 10px 14px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 100;
-    transform: translateY(calc(100% + 24px));
-    transition: transform var(--transition-slow);
-    pointer-events: none;
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px hsl(0 0% 0% / 0.3);
-  }
-  .toast.show { transform: translateY(0); }
-  .toast.success {
-    background: hsl(142 76% 36% / 0.12);
-    border: 1px solid hsl(142 76% 36% / 0.3);
-    color: hsl(142 76% 50%);
-  }
-  .toast.error {
-    background: hsl(0 62.8% 30.6% / 0.12);
-    border: 1px solid hsl(0 62.8% 30.6% / 0.3);
-    color: hsl(0 62.8% 55%);
-  }
-  .toast-icon {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-  }
-
-  /* ── Keyboard shortcut hint ── */
-  .kbd {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-family: var(--font-mono);
-    background: var(--secondary);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0px 4px;
-    color: var(--muted-foreground);
-    line-height: 1.6;
-  }
-
-  /* ── Focus ring utility ── */
-  :focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
-  }
-
-  /* ── Smooth transitions for interactions ── */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Styles Managers</title>
+  <style>
+    /* ── Reset ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-  }
-</style>
+
+    /* ── shadcn/ui Design Tokens ── */
+    :root {
+      /* Neutral scale (zinc) */
+      --background: hsl(240 10% 3.9%);
+      --foreground: hsl(0 0% 98%);
+      --card: hsl(240 10% 3.9%);
+      --card-foreground: hsl(0 0% 98%);
+      --popover: hsl(240 10% 3.9%);
+      --popover-foreground: hsl(0 0% 98%);
+      --primary: hsl(0 0% 98%);
+      --primary-foreground: hsl(240 5.9% 10%);
+      --secondary: hsl(240 3.7% 15.9%);
+      --secondary-foreground: hsl(0 0% 98%);
+      --muted: hsl(240 3.7% 15.9%);
+      --muted-foreground: hsl(240 5% 64.9%);
+      --accent: hsl(240 3.7% 15.9%);
+      --accent-foreground: hsl(0 0% 98%);
+      --destructive: hsl(0 62.8% 30.6%);
+      --destructive-foreground: hsl(0 0% 98%);
+      --border: hsl(240 3.7% 15.9%);
+      --input: hsl(240 3.7% 15.9%);
+      --ring: hsl(240 4.9% 83.9%);
+      --success: hsl(142 76% 36%);
+      --success-foreground: hsl(0 0% 98%);
+      --warning: hsl(48 96% 53%);
+      --warning-foreground: hsl(0 0% 0%);
+
+      /* Radius */
+      --radius: 0.5rem;
+
+      /* Font */
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+
+      /* Sidebar-specific tokens */
+      --sidebar: hsl(240 5.9% 10%);
+      --sidebar-foreground: hsl(240 4.8% 95.9%);
+      --sidebar-border: hsl(240 3.7% 15.9%);
+      --sidebar-accent: hsl(240 3.7% 15.9%);
+      --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+
+      /* Animation */
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+      /* Tab accent colors */
+      --global-accent: hsl(217 91% 60%);
+      --global-accent-muted: hsl(217 91% 60% / 0.12);
+      --global-accent-border: hsl(217 91% 60% / 0.3);
+      --personal-accent: hsl(271 81% 65%);
+      --personal-accent-muted: hsl(271 81% 65% / 0.12);
+      --personal-accent-border: hsl(271 81% 65% / 0.3);
+    }
+
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Header (shadcn Sidebar Header pattern) ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--sidebar);
+    }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--sidebar-foreground);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .header-title svg {
+      color: var(--muted-foreground);
+    }
+
+    /* ── Tabs (shadcn TabsList pattern) ── */
+    .tabs {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .tabs-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--sidebar);
+    }
+
+    .tabs-list {
+      display: inline-flex;
+      align-items: center;
+      gap: 1px;
+      height: 32px;
+      background: var(--muted);
+      border-radius: calc(var(--radius));
+      padding: 3px;
+      flex-shrink: 0;
+    }
+
+    .tab-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 100%;
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      color: var(--muted-foreground);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      outline: none;
+      white-space: nowrap;
+      user-select: none;
+      position: relative;
+      line-height: 1;
+    }
+
+    .tab-trigger:hover {
+      color: var(--foreground);
+    }
+
+    .tab-trigger:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 1px;
+    }
+
+    /* Active state: shadcn bg-background + shadow */
+    .tab-trigger[data-state="active"] {
+      background: var(--background);
+      color: var(--foreground);
+      border-color: var(--border);
+      box-shadow: 0 1px 2px hsl(0 0% 0% / 0.15);
+    }
+
+    /* Scope accent dots */
+    .tab-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all var(--transition-fast);
+    }
+
+    .tab-trigger[data-tab="global"] .tab-dot {
+      background: var(--global-accent);
+      opacity: 0.4;
+    }
+
+    .tab-trigger[data-tab="personal"] .tab-dot {
+      background: var(--personal-accent);
+      opacity: 0.4;
+    }
+
+    .tab-trigger[data-state="active"][data-tab="global"] .tab-dot {
+      opacity: 1;
+      box-shadow: 0 0 6px hsl(217 91% 60% / 0.4);
+    }
+
+    .tab-trigger[data-state="active"][data-tab="personal"] .tab-dot {
+      opacity: 1;
+      box-shadow: 0 0 6px hsl(271 81% 65% / 0.4);
+    }
+
+    /* Tab actions (export/import) beside tabs-list */
+    .tab-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+      align-items: center;
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    /* ── Button styles (shadcn Button variants) ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: calc(var(--radius) - 2px);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast),
+        border-color var(--transition-fast), opacity var(--transition-fast),
+        box-shadow var(--transition-fast);
+      outline: none;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    .btn:disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    /* Default / Primary */
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border: none;
+      padding: 8px 16px;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary);
+      opacity: 0.9;
+    }
+
+    /* Secondary */
+    .btn-secondary {
+      background: var(--secondary);
+      color: var(--secondary-foreground);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: hsl(240 3.7% 20%);
+    }
+
+    /* Ghost */
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted-foreground);
+      border: none;
+      padding: 6px;
+    }
+
+    .btn-ghost:hover {
+      background: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    /* Outline */
+    .btn-outline {
+      background: transparent;
+      color: var(--foreground);
+      border: 1px solid var(--input);
+      padding: 8px 16px;
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    /* Icon-only button */
+    .btn-icon {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-foreground);
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .btn-icon:hover {
+      background: var(--accent);
+      color: var(--accent-foreground);
+      border-color: hsl(240 3.7% 20%);
+    }
+
+    .btn-icon.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Scope-tinted icon buttons */
+    .btn-icon.global-tint:hover {
+      color: var(--global-accent);
+      border-color: var(--global-accent-border);
+      background: var(--global-accent-muted);
+    }
+
+    .btn-icon.personal-tint:hover {
+      color: var(--personal-accent);
+      border-color: var(--personal-accent-border);
+      background: var(--personal-accent-muted);
+    }
+
+    /* Destructive ghost (for delete) */
+    .btn-destructive-ghost {
+      background: transparent;
+      border: none;
+      color: var(--muted-foreground);
+      padding: 4px;
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all var(--transition-fast);
+      opacity: 0;
+      flex-shrink: 0;
+    }
+
+    .btn-destructive-ghost:hover {
+      color: hsl(0 62.8% 50%);
+      background: hsl(0 62.8% 30.6% / 0.15);
+    }
+
+    /* ── Input (shadcn Input) ── */
+    .input {
+      flex: 1;
+      min-width: 0;
+      background: var(--background);
+      border: 1px solid var(--input);
+      border-radius: calc(var(--radius) - 2px);
+      color: var(--foreground);
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .input:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px hsl(240 4.9% 83.9% / 0.15);
+    }
+
+    .input::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    /* Search input with icon & Select All */
+    .search-wrap {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-input-container {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .search-input-container .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted-foreground);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      color: var(--foreground);
+      padding: 6px 10px 6px 32px;
+      font-size: 13px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .search-input:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px hsl(240 4.9% 83.9% / 0.15);
+    }
+
+    .search-input::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    /* ── ScrollArea (shadcn ScrollArea) ── */
+    .list-container {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: hsl(240 3.7% 22%) transparent;
+    }
+
+    .list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .list-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .list-container::-webkit-scrollbar-thumb {
+      background: hsl(240 3.7% 22%);
+      border-radius: 3px;
+    }
+
+    .list-container::-webkit-scrollbar-thumb:hover {
+      background: hsl(240 3.7% 28%);
+    }
+
+    /* ── Scope info banner ── */
+    .scope-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      font-size: 11px;
+      color: var(--muted-foreground);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .scope-banner svg {
+      flex-shrink: 0;
+    }
+
+    .scope-banner.global-banner {
+      color: var(--global-accent);
+      background: var(--global-accent-muted);
+    }
+
+    .scope-banner.personal-banner {
+      color: var(--personal-accent);
+      background: var(--personal-accent-muted);
+    }
+
+    /* ── Empty state (shadcn Empty pattern) ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 12px;
+      color: var(--muted-foreground);
+      text-align: center;
+      padding: 32px 24px;
+    }
+
+    .empty-state-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      background: var(--secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-foreground);
+    }
+
+    .empty-state-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    .empty-state-description {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      max-width: 200px;
+      line-height: 1.5;
+    }
+
+    /* ── Label group headers ── */
+    .label-group {
+      margin-bottom: 2px;
+    }
+
+    .label-header {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      position: sticky;
+      top: 0;
+      background: var(--background);
+      z-index: 1;
+    }
+
+    /* ── Class item (shadcn Sidebar MenuItem pattern) ── */
+    .class-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: calc(var(--radius) - 2px);
+      margin: 1px 8px;
+      transition: background var(--transition-fast);
+      gap: 10px;
+      position: relative;
+    }
+
+    .class-item:hover {
+      background: var(--sidebar-accent);
+    }
+
+    .class-item:hover .btn-destructive-ghost {
+      opacity: 1;
+    }
+
+    .class-item.selected {
+      background: var(--sidebar-accent);
+    }
+
+    .class-item.selected::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: var(--primary);
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* Scope accent on selected item */
+    .tab-panel[data-scope="global"] .class-item.selected::before {
+      background: var(--global-accent);
+    }
+
+    .tab-panel[data-scope="personal"] .class-item.selected::before {
+      background: var(--personal-accent);
+    }
+
+
+    /* Class info */
+    .class-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .class-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+    }
+
+    .class-meta {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      margin-top: 1px;
+      line-height: 1.3;
+    }
+
+    /* Badge (shadcn Badge variant=secondary) */
+    .version-badge {
+      font-size: 10px;
+      font-weight: 500;
+      background: var(--secondary);
+      color: var(--muted-foreground);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 1px 7px;
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      line-height: 1.4;
+    }
+
+    /* ── Footer / Insert bar ── */
+    .insert-bar {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .insert-bar .btn-primary {
+      width: 100%;
+      border-radius: calc(var(--radius) - 2px);
+    }
+
+    /* ── Save section (Card pattern) ── */
+    .save-section {
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      display: none;
+    }
+
+    .save-section.visible {
+      display: block;
+    }
+
+    .save-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    /* ── Selection indicator (Alert-like) ── */
+    .selection-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: calc(var(--radius) - 2px);
+      border: 1px solid var(--border);
+      background: var(--background);
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .selection-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--muted-foreground);
+      transition: background var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .selection-indicator.has-selection .selection-dot {
+      background: var(--success);
+      box-shadow: 0 0 6px hsl(142 76% 36% / 0.4);
+    }
+
+    .selection-indicator.has-selection {
+      border-color: hsl(142 76% 36% / 0.3);
+    }
+
+    .selection-text {
+      color: var(--muted-foreground);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .selection-indicator.has-selection .selection-text {
+      color: hsl(142 76% 50%);
+    }
+
+    /* ── Separator ── */
+    .separator {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+      flex-shrink: 0;
+    }
+
+    /* ── Toast (shadcn Sonner-inspired) ── */
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 100;
+      transform: translateY(calc(100% + 24px));
+      transition: transform var(--transition-slow);
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px hsl(0 0% 0% / 0.3);
+    }
+
+    .toast.show {
+      transform: translateY(0);
+    }
+
+    .toast.success {
+      background: hsl(142 76% 36% / 0.12);
+      border: 1px solid hsl(142 76% 36% / 0.3);
+      color: hsl(142 76% 50%);
+    }
+
+    .toast.error {
+      background: hsl(0 62.8% 30.6% / 0.12);
+      border: 1px solid hsl(0 62.8% 30.6% / 0.3);
+      color: hsl(0 62.8% 55%);
+    }
+
+    .toast-icon {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ── Keyboard shortcut hint ── */
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0px 4px;
+      color: var(--muted-foreground);
+      line-height: 1.6;
+    }
+
+    /* ── Focus ring utility ── */
+    :focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    /* ── Checkbox (shadcn-inspired) ── */
+    .checkbox-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+
+    .checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--input);
+      border-radius: 4px; /* rounded-[4px] */
+      background-color: var(--background);
+      margin: 0;
+      cursor: pointer;
+      position: relative;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+      outline: none;
+      flex-shrink: 0;
+      display: grid;
+      place-content: center;
+    }
+
+    .checkbox:hover {
+      border-color: var(--ring);
+    }
+
+    .checkbox:focus-visible {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 3px hsl(240 4.9% 83.9% / 0.5); /* focus-visible:ring-[3px] focus-visible:ring-ring/50 */
+    }
+
+    .checkbox:checked,
+    .checkbox:indeterminate {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .checkbox:checked::after {
+      content: "";
+      width: 14px;
+      height: 14px;
+      background-color: var(--primary-foreground);
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'%3E%3C/path%3E%3C/svg%3E");
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'%3E%3C/path%3E%3C/svg%3E");
+      mask-size: contain;
+      -webkit-mask-size: contain;
+      mask-repeat: no-repeat;
+      -webkit-mask-repeat: no-repeat;
+    }
+
+    .checkbox:indeterminate::after {
+      content: "";
+      width: 10px;
+      height: 2px;
+      background-color: var(--primary-foreground);
+      border-radius: 1px;
+    }
+
+    .checkbox:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* ── Bulk Action Bar ── */
+    .bulk-action-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--secondary);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .bulk-action-bar.visible {
+      display: flex;
+    }
+
+    .bulk-action-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    /* ── Smooth transitions for interactions ── */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ── Resize Handle ── */
+    .resize-handle {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 3px;
+      opacity: 0.35;
+      transition: opacity var(--transition-fast);
+    }
+
+    .resize-handle:hover {
+      opacity: 0.7;
+    }
+
+    .resize-handle.dragging {
+      opacity: 0.9;
+    }
+
+    .resize-handle svg {
+      display: block;
+    }
+
+    /* Overlay to capture mouse during drag */
+    .resize-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 199;
+      cursor: nwse-resize;
+      display: none;
+    }
+
+    .resize-overlay.active {
+      display: block;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-title">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="1" y="1" width="6" height="6" rx="2" fill="currentColor"/>
-      <rect x="9" y="1" width="6" height="6" rx="2" fill="currentColor" opacity=".4"/>
-      <rect x="1" y="9" width="6" height="6" rx="2" fill="currentColor" opacity=".4"/>
-      <rect x="9" y="9" width="6" height="6" rx="2" fill="currentColor" opacity=".4"/>
-    </svg>
-    Styles Managers
-  </div>
-</div>
-
-<!-- Tab Navigation -->
-<div class="tab-nav">
-  <button class="tab-btn active" id="tabGlobal" data-tab="global">
-    <span class="tab-dot"></span>
-    Global
-  </button>
-  <button class="tab-btn" id="tabPersonal" data-tab="personal">
-    <span class="tab-dot"></span>
-    Personal
-  </button>
-
-  <!-- Tab-scoped Export/Import (shown per active tab) -->
-  <div class="tab-actions">
-    <!-- Global export/import -->
-    <button class="btn btn-icon global-tint" id="globalExportBtn" title="Export Global Presets">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" x2="12" y1="15" y2="3"/>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="1" width="6" height="6" rx="2" fill="currentColor" />
+        <rect x="9" y="1" width="6" height="6" rx="2" fill="currentColor" opacity=".4" />
+        <rect x="1" y="9" width="6" height="6" rx="2" fill="currentColor" opacity=".4" />
+        <rect x="9" y="9" width="6" height="6" rx="2" fill="currentColor" opacity=".4" />
       </svg>
-    </button>
-    <button class="btn btn-icon global-tint" id="globalImportBtn" title="Import Global Presets">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="17 8 12 3 7 8"/>
-        <line x1="12" x2="12" y1="3" y2="15"/>
-      </svg>
-    </button>
-    <!-- Personal export/import -->
-    <button class="btn btn-icon personal-tint" id="personalExportBtn" title="Export Personal Presets" style="display:none;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" x2="12" y1="15" y2="3"/>
-      </svg>
-    </button>
-    <button class="btn btn-icon personal-tint" id="personalImportBtn" title="Import Personal Presets" style="display:none;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="17 8 12 3 7 8"/>
-        <line x1="12" x2="12" y1="3" y2="15"/>
-      </svg>
-    </button>
-  </div>
-</div>
-
-<!-- Hidden file inputs -->
-<input type="file" id="globalImportInput" accept=".json" style="display: none;" />
-<input type="file" id="personalImportInput" accept=".json" style="display: none;" />
-
-<!-- ═══════════════════════════════════ GLOBAL TAB ═══════════════════════════════════ -->
-<div class="tab-panel active" id="panelGlobal" data-scope="global">
-
-  <!-- Scope banner -->
-  <div class="scope-banner global-banner">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-      <path d="M2 12h20"/>
-    </svg>
-    Shared with all collaborators in this file
+      Styles Managers
+    </div>
   </div>
 
-  <!-- Search -->
-  <div class="search-wrap">
-    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <circle cx="11" cy="11" r="8"/>
-      <path d="m21 21-4.3-4.3"/>
-    </svg>
-    <input class="search-input" id="globalSearchInput" type="text" placeholder="Search global classes…" />
+  <!-- Tabs (shadcn pattern: TabsList + actions in flex row) -->
+  <div class="tabs">
+    <div class="tabs-header">
+      <div class="tabs-list" role="tablist">
+        <button class="tab-trigger" id="tabGlobal" data-tab="global" data-state="active" role="tab"
+          aria-selected="true">
+          <span class="tab-dot"></span>
+          Global
+        </button>
+        <button class="tab-trigger" id="tabPersonal" data-tab="personal" data-state="inactive" role="tab"
+          aria-selected="false">
+          <span class="tab-dot"></span>
+          Personal
+        </button>
+      </div>
+
+      <!-- Tab-scoped Export/Import actions -->
+      <div class="tab-actions">
+        <!-- Global export/import -->
+        <button class="btn btn-icon global-tint" id="globalExportBtn" title="Export Global Presets">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" x2="12" y1="15" y2="3" />
+          </svg>
+        </button>
+        <button class="btn btn-icon global-tint" id="globalImportBtn" title="Import Global Presets">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" x2="12" y1="3" y2="15" />
+          </svg>
+        </button>
+        <!-- Personal export/import -->
+        <button class="btn btn-icon personal-tint" id="personalExportBtn" title="Export Personal Presets"
+          style="display:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" x2="12" y1="15" y2="3" />
+          </svg>
+        </button>
+        <button class="btn btn-icon personal-tint" id="personalImportBtn" title="Import Personal Presets"
+          style="display:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" x2="12" y1="3" y2="15" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- List -->
-  <div class="list-container" id="globalClassList">
-    <div class="empty-state" id="globalEmptyState">
-      <div class="empty-state-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-          <path d="M2 12h20"/>
+  <!-- Hidden file inputs -->
+  <input type="file" id="globalImportInput" accept=".json" style="display: none;" />
+  <input type="file" id="personalImportInput" accept=".json" style="display: none;" />
+
+  <!-- ═══════════════════════════════════ GLOBAL TAB ═══════════════════════════════════ -->
+  <div class="tab-panel active" id="panelGlobal" data-scope="global">
+
+    <!-- Scope banner -->
+    <div class="scope-banner global-banner">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+        <path d="M2 12h20" />
+      </svg>
+      Shared with all collaborators in this file
+    </div>
+
+    <!-- Search & Bulk Actions -->
+    <div class="search-wrap">
+      <div class="checkbox-wrapper" style="margin: 0;">
+        <input type="checkbox" class="checkbox" id="globalSelectAll" title="Select all" />
+      </div>
+      <div class="search-input-container">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
         </svg>
-      </div>
-      <div class="empty-state-title">No global classes yet</div>
-      <div class="empty-state-description">Save a class below — it will be available to all collaborators in this Figma file.</div>
-    </div>
-  </div>
-
-  <!-- Insert bar -->
-  <div class="insert-bar">
-    <button class="btn btn-primary" id="globalInsertBtn" disabled>Insert Selected Class</button>
-  </div>
-
-  <!-- Save section -->
-  <div class="save-section">
-    <div class="save-label">Save Selection as Global Class</div>
-
-    <div class="selection-indicator" id="globalSelectionIndicator">
-      <div class="selection-dot"></div>
-      <span class="selection-text" id="globalSelectionText">No frame selected on canvas</span>
-    </div>
-
-    <div class="form-row">
-      <div class="field">
-        <label class="field-label" for="globalNameInput">Name</label>
-        <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
-      </div>
-      <div class="field">
-        <label class="field-label" for="globalLabelInput">Label</label>
-        <input class="input" id="globalLabelInput" type="text" placeholder="e.g. Layout" />
+        <input class="search-input" id="globalSearchInput" type="text" placeholder="Search global classes…" />
       </div>
     </div>
 
-    <button class="btn btn-outline" id="globalSaveBtn" style="width: 100%;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 5v14"/>
-        <path d="M5 12h14"/>
-      </svg>
-      Save as Global Class
-    </button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════ PERSONAL TAB ═══════════════════════════════════ -->
-<div class="tab-panel" id="panelPersonal" data-scope="personal">
-
-  <!-- Scope banner -->
-  <div class="scope-banner personal-banner">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-    Only visible to you on this device
-  </div>
-
-  <!-- Search -->
-  <div class="search-wrap">
-    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <circle cx="11" cy="11" r="8"/>
-      <path d="m21 21-4.3-4.3"/>
-    </svg>
-    <input class="search-input" id="personalSearchInput" type="text" placeholder="Search personal classes…" />
-  </div>
-
-  <!-- List -->
-  <div class="list-container" id="personalClassList">
-    <div class="empty-state" id="personalEmptyState">
-      <div class="empty-state-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
+    <div class="bulk-action-bar" id="globalBulkActionBar">
+      <span class="bulk-action-text" id="globalBulkText">0 selected</span>
+      <button class="btn btn-destructive-ghost" id="globalBulkDeleteBtn" style="opacity: 1;" title="Delete selected">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
         </svg>
+      </button>
+    </div>
+
+    <!-- List -->
+    <div class="list-container" id="globalClassList">
+      <div class="empty-state" id="globalEmptyState">
+        <div class="empty-state-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+            <path d="M2 12h20" />
+          </svg>
+        </div>
+        <div class="empty-state-title">No global classes yet</div>
+        <div class="empty-state-description">Save a class below — it will be available to all collaborators in this
+          Figma file.</div>
       </div>
-      <div class="empty-state-title">No personal classes yet</div>
-      <div class="empty-state-description">Save a class below — it will be stored locally on your device only.</div>
+    </div>
+
+    <!-- Insert bar -->
+    <div class="insert-bar">
+      <button class="btn btn-primary" id="globalInsertBtn" disabled>Insert Selected Class</button>
+    </div>
+
+    <!-- Save section -->
+    <div class="save-section" id="globalSaveSection">
+      <div class="save-label">Save Selection as Global Class</div>
+
+      <div class="selection-indicator" id="globalSelectionIndicator">
+        <div class="selection-dot"></div>
+        <span class="selection-text" id="globalSelectionText">No frame selected on canvas</span>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label class="field-label" for="globalNameInput">Name</label>
+          <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="globalLabelInput">Label</label>
+          <input class="input" id="globalLabelInput" type="text" placeholder="e.g. Layout" />
+        </div>
+      </div>
+
+      <button class="btn btn-outline" id="globalSaveBtn" style="width: 100%;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14" />
+          <path d="M5 12h14" />
+        </svg>
+        Save as Global Class
+      </button>
     </div>
   </div>
 
-  <!-- Insert bar -->
-  <div class="insert-bar">
-    <button class="btn btn-primary" id="personalInsertBtn" disabled>Insert Selected Class</button>
-  </div>
+  <!-- ═══════════════════════════════════ PERSONAL TAB ═══════════════════════════════════ -->
+  <div class="tab-panel" id="panelPersonal" data-scope="personal">
 
-  <!-- Save section -->
-  <div class="save-section">
-    <div class="save-label">Save Selection as Personal Class</div>
-
-    <div class="selection-indicator" id="personalSelectionIndicator">
-      <div class="selection-dot"></div>
-      <span class="selection-text" id="personalSelectionText">No frame selected on canvas</span>
-    </div>
-
-    <div class="form-row">
-      <div class="field">
-        <label class="field-label" for="personalNameInput">Name</label>
-        <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
-      </div>
-      <div class="field">
-        <label class="field-label" for="personalLabelInput">Label</label>
-        <input class="input" id="personalLabelInput" type="text" placeholder="e.g. Layout" />
-      </div>
-    </div>
-
-    <button class="btn btn-outline" id="personalSaveBtn" style="width: 100%;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 5v14"/>
-        <path d="M5 12h14"/>
+    <!-- Scope banner -->
+    <div class="scope-banner personal-banner">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
       </svg>
-      Save as Personal Class
-    </button>
+      Only visible to you on this device
+    </div>
+
+    <!-- Search & Bulk Actions -->
+    <div class="search-wrap">
+      <div class="checkbox-wrapper" style="margin: 0;">
+        <input type="checkbox" class="checkbox" id="personalSelectAll" title="Select all" />
+      </div>
+      <div class="search-input-container">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input class="search-input" id="personalSearchInput" type="text" placeholder="Search personal classes…" />
+      </div>
+    </div>
+
+    <div class="bulk-action-bar" id="personalBulkActionBar">
+      <span class="bulk-action-text" id="personalBulkText">0 selected</span>
+      <button class="btn btn-destructive-ghost" id="personalBulkDeleteBtn" style="opacity: 1;" title="Delete selected">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- List -->
+    <div class="list-container" id="personalClassList">
+      <div class="empty-state" id="personalEmptyState">
+        <div class="empty-state-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="empty-state-title">No personal classes yet</div>
+        <div class="empty-state-description">Save a class below — it will be stored locally on your device only.</div>
+      </div>
+    </div>
+
+    <!-- Insert bar -->
+    <div class="insert-bar">
+      <button class="btn btn-primary" id="personalInsertBtn" disabled>Insert Selected Class</button>
+    </div>
+
+    <!-- Save section -->
+    <div class="save-section" id="personalSaveSection">
+      <div class="save-label">Save Selection as Personal Class</div>
+
+      <div class="selection-indicator" id="personalSelectionIndicator">
+        <div class="selection-dot"></div>
+        <span class="selection-text" id="personalSelectionText">No frame selected on canvas</span>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label class="field-label" for="personalNameInput">Name</label>
+          <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="personalLabelInput">Label</label>
+          <input class="input" id="personalLabelInput" type="text" placeholder="e.g. Layout" />
+        </div>
+      </div>
+
+      <button class="btn btn-outline" id="personalSaveBtn" style="width: 100%;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14" />
+          <path d="M5 12h14" />
+        </svg>
+        Save as Personal Class
+      </button>
+    </div>
   </div>
-</div>
 
-<!-- Toast -->
-<div class="toast" id="toast">
-  <span class="toast-icon" id="toastIcon"></span>
-  <span id="toastMessage"></span>
-</div>
+  <!-- Resize Handle -->
+  <div class="resize-overlay" id="resizeOverlay"></div>
+  <div class="resize-handle" id="resizeHandle" title="Drag to resize">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <path d="M10 2L2 10" stroke="var(--muted-foreground)" stroke-width="1.2" stroke-linecap="round" />
+      <path d="M10 6L6 10" stroke="var(--muted-foreground)" stroke-width="1.2" stroke-linecap="round" />
+      <path d="M10 10L10 10" stroke="var(--muted-foreground)" stroke-width="1.5" stroke-linecap="round" />
+    </svg>
+  </div>
 
-<script>
-  let globalClasses = [];
-  let personalClasses = [];
-  let globalSelectedId = null;
-  let personalSelectedId = null;
-  let hasValidSelection = false;
-  let activeTab = "global"; // "global" | "personal"
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon"></span>
+    <span id="toastMessage"></span>
+  </div>
 
-  // ── Messaging ──
-  const post = (msg) => parent.postMessage({ pluginMessage: msg }, "*");
+  <script>
+    let globalClasses = [];
+    let personalClasses = [];
+    let globalSelectedId = null;
+    let personalSelectedId = null;
+    let hasValidSelection = false;
+    let activeTab = "global"; // "global" | "personal"
+    let globalCheckedIds = new Set();
+    let personalCheckedIds = new Set();
 
-  window.onmessage = (event) => {
-    const msg = event.data.pluginMessage;
-    if (!msg) return;
+    // ── Messaging ──
+    const post = (msg) => parent.postMessage({ pluginMessage: msg }, "*");
 
-    if (msg.type === "global-classes-loaded") {
-      globalClasses = msg.classes || [];
-      renderList("global", document.getElementById("globalSearchInput").value.trim().toLowerCase());
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === "global-classes-loaded") {
+        globalClasses = msg.classes || [];
+        renderList("global", document.getElementById("globalSearchInput").value.trim().toLowerCase());
+      }
+      if (msg.type === "personal-classes-loaded") {
+        personalClasses = msg.classes || [];
+        renderList("personal", document.getElementById("personalSearchInput").value.trim().toLowerCase());
+      }
+      if (msg.type === "selection-changed") {
+        hasValidSelection = msg.hasValidSelection;
+        // Update both panels' selection indicators and save sections
+        ["global", "personal"].forEach((scope) => {
+          const indicator = document.getElementById(scope + "SelectionIndicator");
+          const text = document.getElementById(scope + "SelectionText");
+          const saveSection = document.getElementById(scope + "SaveSection");
+          if (msg.hasValidSelection) {
+            indicator.classList.add("has-selection");
+            text.textContent = msg.nodeName || "Frame selected";
+            saveSection.classList.add("visible");
+          } else {
+            indicator.classList.remove("has-selection");
+            text.textContent = "No frame selected on canvas";
+            saveSection.classList.remove("visible");
+          }
+        });
+      }
+      if (msg.type === "success") showToast(msg.message, "success");
+      if (msg.type === "error") showToast(msg.message, "error");
+    };
+
+    // ── Tab switching (shadcn data-state pattern) ──
+    function switchTab(tab) {
+      activeTab = tab;
+      // Update trigger states (data-state + aria-selected)
+      document.querySelectorAll(".tab-trigger").forEach((btn) => {
+        const isActive = btn.dataset.tab === tab;
+        btn.dataset.state = isActive ? "active" : "inactive";
+        btn.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+      // Toggle tab panels
+      document.querySelectorAll(".tab-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === "panel" + capitalize(tab));
+      });
+
+      // Show/hide scope-specific export/import buttons
+      const isGlobal = tab === "global";
+      document.getElementById("globalExportBtn").style.display = isGlobal ? "" : "none";
+      document.getElementById("globalImportBtn").style.display = isGlobal ? "" : "none";
+      document.getElementById("personalExportBtn").style.display = isGlobal ? "none" : "";
+      document.getElementById("personalImportBtn").style.display = isGlobal ? "none" : "";
     }
-    if (msg.type === "personal-classes-loaded") {
-      personalClasses = msg.classes || [];
-      renderList("personal", document.getElementById("personalSearchInput").value.trim().toLowerCase());
+
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    document.getElementById("tabGlobal").addEventListener("click", () => switchTab("global"));
+    document.getElementById("tabPersonal").addEventListener("click", () => switchTab("personal"));
+
+    // ── Render ──
+    function renderList(scope, filter = "") {
+      const classes = scope === "global" ? globalClasses : personalClasses;
+      const listId = scope + "ClassList";
+      const emptyId = scope + "EmptyState";
+      const insertBtnId = scope + "InsertBtn";
+      const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
+      const checkedIds = scope === "global" ? globalCheckedIds : personalCheckedIds;
+
+      const list = document.getElementById(listId);
+      const empty = document.getElementById(emptyId);
+      const insertBtn = document.getElementById(insertBtnId);
+
+      // Cleanup stale checked ids that were deleted externally or no longer exist
+      for (let id of checkedIds) {
+        if (!classes.find(c => c.id === id)) checkedIds.delete(id);
+      }
+      updateBulkAction(scope);
+
+      let items = classes;
+      if (filter) {
+        items = items.filter(
+          (c) =>
+            c.name.toLowerCase().includes(filter) ||
+            (c.label || "").toLowerCase().includes(filter)
+        );
+      }
+
+      if (items.length === 0) {
+        list.innerHTML = "";
+        list.appendChild(empty);
+        insertBtn.disabled = true;
+        return;
+      }
+
+      // Group by label
+      const groups = {};
+      for (const cls of items) {
+        const key = cls.label || "Ungrouped";
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(cls);
+      }
+
+      const sortedKeys = Object.keys(groups).sort((a, b) => {
+        if (a === "Ungrouped") return 1;
+        if (b === "Ungrouped") return -1;
+        return a.localeCompare(b);
+      });
+
+      list.innerHTML = "";
+
+      for (const key of sortedKeys) {
+        const group = document.createElement("div");
+        group.className = "label-group";
+
+        const header = document.createElement("div");
+        header.className = "label-header";
+        header.textContent = key;
+        group.appendChild(header);
+
+        for (const cls of groups[key]) {
+          group.appendChild(createClassItem(cls, scope));
+        }
+
+        list.appendChild(group);
+      }
+
+      insertBtn.disabled = !selectedId || !classes.find((c) => c.id === selectedId);
     }
-    if (msg.type === "selection-changed") {
-      hasValidSelection = msg.hasValidSelection;
-      // Update both panels' selection indicators
-      ["global", "personal"].forEach((scope) => {
-        const indicator = document.getElementById(scope + "SelectionIndicator");
-        const text = document.getElementById(scope + "SelectionText");
-        if (msg.hasValidSelection) {
-          indicator.classList.add("has-selection");
-          text.textContent = msg.nodeName || "Frame selected";
-        } else {
-          indicator.classList.remove("has-selection");
-          text.textContent = "No frame selected on canvas";
+
+    function createClassItem(cls, scope) {
+      const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
+      const checkedIds = scope === "global" ? globalCheckedIds : personalCheckedIds;
+
+      const item = document.createElement("div");
+      item.className = "class-item" + (cls.id === selectedId ? " selected" : "");
+      item.dataset.id = cls.id;
+
+      // Checkbox
+      const checkboxWrap = document.createElement("div");
+      checkboxWrap.className = "checkbox-wrapper";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "checkbox";
+      checkbox.checked = checkedIds.has(cls.id);
+      checkbox.addEventListener("click", (e) => {
+        e.stopPropagation(); // Avoid triggering item select
+        if (checkbox.checked) checkedIds.add(cls.id);
+        else checkedIds.delete(cls.id);
+        updateBulkAction(scope);
+      });
+      checkboxWrap.appendChild(checkbox);
+
+
+      const info = document.createElement("div");
+      info.className = "class-info";
+
+      const name = document.createElement("div");
+      name.className = "class-name";
+      name.textContent = cls.name;
+
+      const meta = document.createElement("div");
+      meta.className = "class-meta";
+      const d = new Date(cls.updatedAt);
+      meta.textContent = formatDate(d);
+
+      info.appendChild(name);
+      info.appendChild(meta);
+
+      const badge = document.createElement("div");
+      badge.className = "version-badge";
+      badge.textContent = "v" + cls.version;
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "btn-destructive-ghost";
+      delBtn.title = "Delete class";
+      delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (confirm(`Delete class "${cls.name}"?`)) {
+          post({ type: "delete-class", id: cls.id, scope });
+          if (scope === "global" && globalSelectedId === cls.id) {
+            globalSelectedId = null;
+            document.getElementById("globalInsertBtn").disabled = true;
+          }
+          if (scope === "personal" && personalSelectedId === cls.id) {
+            personalSelectedId = null;
+            document.getElementById("personalInsertBtn").disabled = true;
+          }
         }
       });
+
+      item.appendChild(checkboxWrap);
+      item.appendChild(info);
+      item.appendChild(badge);
+      item.appendChild(delBtn);
+
+      item.addEventListener("click", () => {
+        if (scope === "global") {
+          globalSelectedId = cls.id;
+          document.getElementById("globalInsertBtn").disabled = false;
+          document.getElementById("globalNameInput").value = cls.name;
+          document.getElementById("globalLabelInput").value = cls.label || "";
+        } else {
+          personalSelectedId = cls.id;
+          document.getElementById("personalInsertBtn").disabled = false;
+          document.getElementById("personalNameInput").value = cls.name;
+          document.getElementById("personalLabelInput").value = cls.label || "";
+        }
+        // Highlight in this scope
+        document.querySelectorAll("#panel" + capitalize(scope) + " .class-item")
+          .forEach((el) => el.classList.remove("selected"));
+        item.classList.add("selected");
+      });
+
+      return item;
     }
-    if (msg.type === "success") showToast(msg.message, "success");
-    if (msg.type === "error") showToast(msg.message, "error");
-  };
 
-  // ── Tab switching ──
-  function switchTab(tab) {
-    activeTab = tab;
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.tab === tab);
-    });
-    document.querySelectorAll(".tab-panel").forEach((panel) => {
-      panel.classList.toggle("active", panel.id === "panel" + capitalize(tab));
-    });
+    // ── Bulk Actions ──
+    function updateBulkAction(scope) {
+      const set = scope === "global" ? globalCheckedIds : personalCheckedIds;
+      const classes = scope === "global" ? globalClasses : personalClasses;
+      const bar = document.getElementById(scope + "BulkActionBar");
+      const text = document.getElementById(scope + "BulkText");
+      const selectAll = document.getElementById(scope + "SelectAll");
 
-    // Show/hide scope-specific export/import buttons
-    const isGlobal = tab === "global";
-    document.getElementById("globalExportBtn").style.display = isGlobal ? "" : "none";
-    document.getElementById("globalImportBtn").style.display = isGlobal ? "" : "none";
-    document.getElementById("personalExportBtn").style.display = isGlobal ? "none" : "";
-    document.getElementById("personalImportBtn").style.display = isGlobal ? "none" : "";
-  }
-
-  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-  document.getElementById("tabGlobal").addEventListener("click", () => switchTab("global"));
-  document.getElementById("tabPersonal").addEventListener("click", () => switchTab("personal"));
-
-  // ── Render ──
-  function renderList(scope, filter = "") {
-    const classes = scope === "global" ? globalClasses : personalClasses;
-    const listId = scope + "ClassList";
-    const emptyId = scope + "EmptyState";
-    const insertBtnId = scope + "InsertBtn";
-    const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
-
-    const list = document.getElementById(listId);
-    const empty = document.getElementById(emptyId);
-    const insertBtn = document.getElementById(insertBtnId);
-
-    let items = classes;
-    if (filter) {
-      items = items.filter(
-        (c) =>
-          c.name.toLowerCase().includes(filter) ||
-          (c.label || "").toLowerCase().includes(filter)
+      // Filter currently shown classes depending on the search input, so "Select All" affects visible ones
+      const filter = document.getElementById(scope + "SearchInput").value.trim().toLowerCase();
+      const visibleClasses = classes.filter(c =>
+        !filter || c.name.toLowerCase().includes(filter) || (c.label || "").toLowerCase().includes(filter)
       );
-    }
 
-    if (items.length === 0) {
-      list.innerHTML = "";
-      list.appendChild(empty);
-      insertBtn.disabled = true;
-      return;
-    }
-
-    // Group by label
-    const groups = {};
-    for (const cls of items) {
-      const key = cls.label || "Ungrouped";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(cls);
-    }
-
-    const sortedKeys = Object.keys(groups).sort((a, b) => {
-      if (a === "Ungrouped") return 1;
-      if (b === "Ungrouped") return -1;
-      return a.localeCompare(b);
-    });
-
-    list.innerHTML = "";
-
-    for (const key of sortedKeys) {
-      const group = document.createElement("div");
-      group.className = "label-group";
-
-      const header = document.createElement("div");
-      header.className = "label-header";
-      header.textContent = key;
-      group.appendChild(header);
-
-      for (const cls of groups[key]) {
-        group.appendChild(createClassItem(cls, scope));
-      }
-
-      list.appendChild(group);
-    }
-
-    insertBtn.disabled = !selectedId || !classes.find((c) => c.id === selectedId);
-  }
-
-  function createClassItem(cls, scope) {
-    const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
-    const item = document.createElement("div");
-    item.className = "class-item" + (cls.id === selectedId ? " selected" : "");
-    item.dataset.id = cls.id;
-
-    const icon = document.createElement("div");
-    icon.className = "class-icon";
-    icon.textContent = cls.name.slice(0, 2).toUpperCase();
-
-    const info = document.createElement("div");
-    info.className = "class-info";
-
-    const name = document.createElement("div");
-    name.className = "class-name";
-    name.textContent = cls.name;
-
-    const meta = document.createElement("div");
-    meta.className = "class-meta";
-    const d = new Date(cls.updatedAt);
-    meta.textContent = formatDate(d);
-
-    info.appendChild(name);
-    info.appendChild(meta);
-
-    const badge = document.createElement("div");
-    badge.className = "version-badge";
-    badge.textContent = "v" + cls.version;
-
-    const delBtn = document.createElement("button");
-    delBtn.className = "btn-destructive-ghost";
-    delBtn.title = "Delete class";
-    delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
-    delBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (confirm(`Delete class "${cls.name}"?`)) {
-        post({ type: "delete-class", id: cls.id, scope });
-        if (scope === "global" && globalSelectedId === cls.id) {
-          globalSelectedId = null;
-          document.getElementById("globalInsertBtn").disabled = true;
-        }
-        if (scope === "personal" && personalSelectedId === cls.id) {
-          personalSelectedId = null;
-          document.getElementById("personalInsertBtn").disabled = true;
-        }
-      }
-    });
-
-    item.appendChild(icon);
-    item.appendChild(info);
-    item.appendChild(badge);
-    item.appendChild(delBtn);
-
-    item.addEventListener("click", () => {
-      if (scope === "global") {
-        globalSelectedId = cls.id;
-        document.getElementById("globalInsertBtn").disabled = false;
-        document.getElementById("globalNameInput").value = cls.name;
-        document.getElementById("globalLabelInput").value = cls.label || "";
+      if (set.size > 0) {
+        bar.classList.add("visible");
+        text.textContent = `${set.size} selected`;
+        selectAll.checked = set.size === visibleClasses.length && visibleClasses.length > 0;
+        selectAll.indeterminate = set.size > 0 && set.size < visibleClasses.length;
       } else {
-        personalSelectedId = cls.id;
-        document.getElementById("personalInsertBtn").disabled = false;
-        document.getElementById("personalNameInput").value = cls.name;
-        document.getElementById("personalLabelInput").value = cls.label || "";
+        bar.classList.remove("visible");
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
       }
-      // Highlight in this scope
-      document.querySelectorAll("#panel" + capitalize(scope) + " .class-item")
-        .forEach((el) => el.classList.remove("selected"));
-      item.classList.add("selected");
-    });
-
-    return item;
-  }
-
-  function formatDate(d) {
-    const now = new Date();
-    const diff = now - d;
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return mins + "m ago";
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return hrs + "h ago";
-    const days = Math.floor(hrs / 24);
-    if (days < 7) return days + "d ago";
-    return d.toLocaleDateString();
-  }
-
-  // ── Insert actions ──
-  document.getElementById("globalInsertBtn").addEventListener("click", () => {
-    if (!globalSelectedId) return;
-    post({ type: "insert-class", id: globalSelectedId, scope: "global" });
-  });
-
-  document.getElementById("personalInsertBtn").addEventListener("click", () => {
-    if (!personalSelectedId) return;
-    post({ type: "insert-class", id: personalSelectedId, scope: "personal" });
-  });
-
-  // ── Save actions ──
-  document.getElementById("globalSaveBtn").addEventListener("click", () => {
-    const name = document.getElementById("globalNameInput").value.trim();
-    const label = document.getElementById("globalLabelInput").value.trim();
-    if (!name) { showToast("Enter a class name.", "error"); return; }
-    post({ type: "save-class", name, label, scope: "global" });
-  });
-
-  document.getElementById("personalSaveBtn").addEventListener("click", () => {
-    const name = document.getElementById("personalNameInput").value.trim();
-    const label = document.getElementById("personalLabelInput").value.trim();
-    if (!name) { showToast("Enter a class name.", "error"); return; }
-    post({ type: "save-class", name, label, scope: "personal" });
-  });
-
-  // ── Export actions ──
-  document.getElementById("globalExportBtn").addEventListener("click", () => {
-    if (globalClasses.length === 0) { showToast("No global classes to export.", "error"); return; }
-    downloadJSON(globalClasses, "global-class-presets.json");
-  });
-
-  document.getElementById("personalExportBtn").addEventListener("click", () => {
-    if (personalClasses.length === 0) { showToast("No personal classes to export.", "error"); return; }
-    downloadJSON(personalClasses, "personal-class-presets.json");
-  });
-
-  function downloadJSON(data, filename) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-    const a = document.createElement("a");
-    a.setAttribute("href", dataStr);
-    a.setAttribute("download", filename);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  // ── Import actions ──
-  document.getElementById("globalImportBtn").addEventListener("click", () => {
-    document.getElementById("globalImportInput").click();
-  });
-
-  document.getElementById("personalImportBtn").addEventListener("click", () => {
-    document.getElementById("personalImportInput").click();
-  });
-
-  function setupImportInput(inputId, scope) {
-    document.getElementById(inputId).addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const importedData = JSON.parse(event.target.result);
-          if (!Array.isArray(importedData)) throw new Error("Invalid preset format");
-          post({ type: "import-classes", classes: importedData, scope });
-        } catch (err) {
-          showToast("Failed to parse JSON file.", "error");
-        }
-        e.target.value = "";
-      };
-      reader.readAsText(file);
-    });
-  }
-
-  setupImportInput("globalImportInput", "global");
-  setupImportInput("personalImportInput", "personal");
-
-  // ── Search ──
-  document.getElementById("globalSearchInput").addEventListener("input", (e) => {
-    renderList("global", e.target.value.trim().toLowerCase());
-  });
-
-  document.getElementById("personalSearchInput").addEventListener("input", (e) => {
-    renderList("personal", e.target.value.trim().toLowerCase());
-  });
-
-  // ── Toast ──
-  let toastTimer = null;
-  function showToast(message, type = "success") {
-    const toast = document.getElementById("toast");
-    const toastMsg = document.getElementById("toastMessage");
-    const toastIcon = document.getElementById("toastIcon");
-
-    toastMsg.textContent = message;
-    toast.className = "toast " + type;
-
-    if (type === "success") {
-      toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
-    } else {
-      toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
     }
 
-    void toast.offsetWidth; // reflow
-    toast.classList.add("show");
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
-  }
-</script>
+    ["global", "personal"].forEach((scope) => {
+      // Select all / Deselect all
+      document.getElementById(scope + "SelectAll").addEventListener("change", (e) => {
+        const set = scope === "global" ? globalCheckedIds : personalCheckedIds;
+        const classes = scope === "global" ? globalClasses : personalClasses;
+        const filter = document.getElementById(scope + "SearchInput").value.trim().toLowerCase();
+        const visibleClasses = classes.filter(c =>
+          !filter || c.name.toLowerCase().includes(filter) || (c.label || "").toLowerCase().includes(filter)
+        );
+
+        if (e.target.checked) {
+          visibleClasses.forEach((c) => set.add(c.id));
+        } else {
+          visibleClasses.forEach((c) => set.delete(c.id));
+        }
+        renderList(scope, filter);
+      });
+
+      // Bulk delete
+      document.getElementById(scope + "BulkDeleteBtn").addEventListener("click", () => {
+        const set = scope === "global" ? globalCheckedIds : personalCheckedIds;
+        if (set.size === 0) return;
+        if (confirm(`Delete ${set.size} class${set.size > 1 ? "es" : ""}?`)) {
+          post({ type: "delete-classes", ids: Array.from(set), scope });
+          set.clear();
+          const selectedId = scope === "global" ? globalSelectedId : personalSelectedId;
+          if (selectedId && set.has(selectedId)) {
+            if (scope === "global") {
+              globalSelectedId = null;
+              document.getElementById("globalInsertBtn").disabled = true;
+            } else {
+              personalSelectedId = null;
+              document.getElementById("personalInsertBtn").disabled = true;
+            }
+          }
+          updateBulkAction(scope);
+        }
+      });
+    });
+
+    function formatDate(d) {
+      const now = new Date();
+      const diff = now - d;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return mins + "m ago";
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + "h ago";
+      const days = Math.floor(hrs / 24);
+      if (days < 7) return days + "d ago";
+      return d.toLocaleDateString();
+    }
+
+    // ── Insert actions ──
+    document.getElementById("globalInsertBtn").addEventListener("click", () => {
+      if (!globalSelectedId) return;
+      post({ type: "insert-class", id: globalSelectedId, scope: "global" });
+    });
+
+    document.getElementById("personalInsertBtn").addEventListener("click", () => {
+      if (!personalSelectedId) return;
+      post({ type: "insert-class", id: personalSelectedId, scope: "personal" });
+    });
+
+    // ── Save actions ──
+    document.getElementById("globalSaveBtn").addEventListener("click", () => {
+      const name = document.getElementById("globalNameInput").value.trim();
+      const label = document.getElementById("globalLabelInput").value.trim();
+      if (!name) { showToast("Enter a class name.", "error"); return; }
+      post({ type: "save-class", name, label, scope: "global" });
+    });
+
+    document.getElementById("personalSaveBtn").addEventListener("click", () => {
+      const name = document.getElementById("personalNameInput").value.trim();
+      const label = document.getElementById("personalLabelInput").value.trim();
+      if (!name) { showToast("Enter a class name.", "error"); return; }
+      post({ type: "save-class", name, label, scope: "personal" });
+    });
+
+    // ── Export actions ──
+    document.getElementById("globalExportBtn").addEventListener("click", () => {
+      if (globalClasses.length === 0) { showToast("No global classes to export.", "error"); return; }
+      downloadJSON(globalClasses, "global-class-presets.json");
+    });
+
+    document.getElementById("personalExportBtn").addEventListener("click", () => {
+      if (personalClasses.length === 0) { showToast("No personal classes to export.", "error"); return; }
+      downloadJSON(personalClasses, "personal-class-presets.json");
+    });
+
+    function downloadJSON(data, filename) {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const a = document.createElement("a");
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", filename);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    // ── Import actions ──
+    document.getElementById("globalImportBtn").addEventListener("click", () => {
+      document.getElementById("globalImportInput").click();
+    });
+
+    document.getElementById("personalImportBtn").addEventListener("click", () => {
+      document.getElementById("personalImportInput").click();
+    });
+
+    function setupImportInput(inputId, scope) {
+      document.getElementById(inputId).addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            if (!Array.isArray(importedData)) throw new Error("Invalid preset format");
+            post({ type: "import-classes", classes: importedData, scope });
+          } catch (err) {
+            showToast("Failed to parse JSON file.", "error");
+          }
+          e.target.value = "";
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    setupImportInput("globalImportInput", "global");
+    setupImportInput("personalImportInput", "personal");
+
+    // ── Search ──
+    document.getElementById("globalSearchInput").addEventListener("input", (e) => {
+      renderList("global", e.target.value.trim().toLowerCase());
+    });
+
+    document.getElementById("personalSearchInput").addEventListener("input", (e) => {
+      renderList("personal", e.target.value.trim().toLowerCase());
+    });
+
+    // ── Toast ──
+    let toastTimer = null;
+    function showToast(message, type = "success") {
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toastMessage");
+      const toastIcon = document.getElementById("toastIcon");
+
+      toastMsg.textContent = message;
+      toast.className = "toast " + type;
+
+      if (type === "success") {
+        toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+      } else {
+        toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
+      }
+
+      void toast.offsetWidth; // reflow
+      toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    // ── Resize Handle ──
+    (() => {
+      const handle = document.getElementById("resizeHandle");
+      const overlay = document.getElementById("resizeOverlay");
+      const MIN_W = 280;
+      const MIN_H = 400;
+      const MAX_W = 800;
+      const MAX_H = 1200;
+
+      let isDragging = false;
+      let startX, startY, startW, startH;
+
+      // Get current iframe dimensions
+      function getSize() {
+        return {
+          w: document.documentElement.clientWidth,
+          h: document.documentElement.clientHeight
+        };
+      }
+
+      handle.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        isDragging = true;
+        const size = getSize();
+        startX = e.clientX;
+        startY = e.clientY;
+        startW = size.w;
+        startH = size.h;
+        handle.classList.add("dragging");
+        overlay.classList.add("active");
+      });
+
+      function onMouseMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const newW = Math.max(MIN_W, Math.min(MAX_W, startW + dx));
+        const newH = Math.max(MIN_H, Math.min(MAX_H, startH + dy));
+        post({ type: "resize", width: Math.round(newW), height: Math.round(newH) });
+      }
+
+      function onMouseUp() {
+        if (!isDragging) return;
+        isDragging = false;
+        handle.classList.remove("dragging");
+        overlay.classList.remove("active");
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+
+      // Also handle if mouse leaves the iframe
+      overlay.addEventListener("mousemove", onMouseMove);
+      overlay.addEventListener("mouseup", onMouseUp);
+    })();
+  </script>
 </body>
+
 </html>

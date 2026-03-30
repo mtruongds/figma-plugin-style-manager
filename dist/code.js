@@ -500,7 +500,7 @@
   function generateId() {
     return "cls_" + Math.random().toString(36).slice(2, 10) + "_" + Date.now().toString(36);
   }
-  figma.showUI(__html__, { width: 320, height: 560, title: "Styles Managers" });
+  figma.showUI(__html__, { width: 320, height: 560, title: "Styles Managers", themeColors: true });
   var pinnedNode = null;
   function getValidNode(sel) {
     const node = sel[0];
@@ -544,6 +544,10 @@
   })();
   figma.on("selectionchange", sendSelection);
   figma.ui.onmessage = async (msg) => {
+    if (msg.type === "resize") {
+      figma.ui.resize(msg.width, msg.height);
+      return;
+    }
     const scope = msg.scope === "personal" ? "personal" : "global";
     if (msg.type === "save-class") {
       try {
@@ -631,6 +635,15 @@
       await saveClasses(scope, classes);
       notifyLoaded(scope, classes);
       figma.ui.postMessage({ type: "success", message: "Class deleted." });
+    }
+    if (msg.type === "delete-classes") {
+      const ids = msg.ids || [];
+      if (ids.length === 0) return;
+      let classes = await loadClasses(scope);
+      classes = classes.filter((c) => !ids.includes(c.id));
+      await saveClasses(scope, classes);
+      notifyLoaded(scope, classes);
+      figma.ui.postMessage({ type: "success", message: `${ids.length} class${ids.length > 1 ? "es" : ""} deleted.` });
     }
     if (msg.type === "import-classes") {
       try {
