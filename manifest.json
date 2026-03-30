@@ -1,6 +1,6 @@
 {
-  "name": "Styles Managers",
-  "id": "styles-managers-plugin",
+  "name": "Figma Plugin Style Manager",
+  "id": "figma-plugin-style-manager",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",

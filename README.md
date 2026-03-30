@@ -1,8 +1,8 @@
-# Styles Managers (Figma Plugin)
+# Style Manager (Figma Plugin)
 
 A powerful Figma plugin that enables "Class-based" design by treating node trees as reusable, serialized definitions. Save a complex frame once, and re-insert it anywhere in your document.
 
-![Styles Managers UI Preview](https://github.com/user-attachments/assets/placeholder-ui.png)
+![Style Manager UI Preview](https://github.com/user-attachments/assets/placeholder-ui.png)
 
 ## Features
 
