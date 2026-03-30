@@ -32,8 +32,8 @@ A powerful Figma plugin that enables "Class-based" design by treating node trees
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Hakimei/figma-plugin-class-manager.git
-   cd create-class-element
+   git clone https://github.com/Hakimei/figma-plugin-style-manager.git
+   cd figma-plugin-style-manager
    ```
 
 2. Install dependencies:
