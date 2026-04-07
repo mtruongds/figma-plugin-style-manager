@@ -68,6 +68,9 @@
       --personal-accent: hsl(271 81% 65%);
       --personal-accent-muted: hsl(271 81% 65% / 0.12);
       --personal-accent-border: hsl(271 81% 65% / 0.3);
+      --sync-accent: hsl(142 76% 36%);
+      --sync-accent-muted: hsl(142 76% 36% / 0.12);
+      --sync-accent-border: hsl(142 76% 36% / 0.3);
     }
 
     body {
@@ -195,6 +198,11 @@
       opacity: 0.4;
     }
 
+    .tab-trigger[data-tab="sync"] .tab-dot {
+      background: var(--sync-accent);
+      opacity: 0.4;
+    }
+
     .tab-trigger[data-state="active"][data-tab="global"] .tab-dot {
       opacity: 1;
       box-shadow: 0 0 6px hsl(217 91% 60% / 0.4);
@@ -203,6 +211,11 @@
     .tab-trigger[data-state="active"][data-tab="personal"] .tab-dot {
       opacity: 1;
       box-shadow: 0 0 6px hsl(271 81% 65% / 0.4);
+    }
+
+    .tab-trigger[data-state="active"][data-tab="sync"] .tab-dot {
+      opacity: 1;
+      box-shadow: 0 0 6px hsl(142 76% 36% / 0.4);
     }
 
     /* Tab actions (export/import) beside tabs-list */
@@ -494,6 +507,11 @@
     .scope-banner.personal-banner {
       color: var(--personal-accent);
       background: var(--personal-accent-muted);
+    }
+
+    .scope-banner.sync-banner {
+      color: var(--sync-accent);
+      background: var(--sync-accent-muted);
     }
 
     /* ── Empty state (shadcn Empty pattern) ── */
@@ -975,6 +993,11 @@
           <span class="tab-dot"></span>
           Personal
         </button>
+        <button class="tab-trigger" id="tabSync" data-tab="sync" data-state="inactive" role="tab"
+          aria-selected="false">
+          <span class="tab-dot"></span>
+          Sync
+        </button>
       </div>
 
       <!-- Tab-scoped Export/Import actions -->
@@ -1207,6 +1230,83 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════ SYNC TAB ═══════════════════════════════════ -->
+  <div class="tab-panel" id="panelSync" data-scope="sync">
+    <div class="scope-banner sync-banner">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+        <path d="M16 21v-5h5"/>
+      </svg>
+      Link global presets with a GitHub repository
+    </div>
+
+    <div style="padding: 16px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+      <!-- Credentials Setup -->
+      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+            <path d="M9 18c-4.51 2-5-2-7-2"/>
+          </svg>
+          <span style="flex: 1;">GitHub Configuration</span>
+          <button class="btn btn-outline" id="syncSaveSettingsBtn" style="padding: 4px 8px; height: auto;" title="Save settings locally">Save Settings</button>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="syncGitHubTokenInput">Personal Access Token</label>
+          <input class="input" id="syncGitHubTokenInput" type="password" placeholder="ghp_xxx..." />
+          <div style="font-size: 11px; color: var(--muted-foreground); margin-top: 4px;">Needs 'repo' or 'contents:write' scope</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="syncGitHubRepoInput">Repository</label>
+          <input class="input" id="syncGitHubRepoInput" type="text" placeholder="owner/repo" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="syncGitHubBranchInput">Branch</label>
+          <input class="input" id="syncGitHubBranchInput" type="text" placeholder="main" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="syncGitHubPathInput">File Path</label>
+          <input class="input" id="syncGitHubPathInput" type="text" placeholder="presets/global.json" />
+        </div>
+      </div>
+
+      <!-- Sync Actions -->
+      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Sync Global Presets</div>
+        
+        <button class="btn btn-primary" id="syncPullBtn" style="width: 100%; justify-content: flex-start;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" x2="12" y1="15" y2="3" />
+          </svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 4px;">
+            <div>Pull Updates from GitHub</div>
+            <div style="font-size: 10px; opacity: 0.8; font-weight: 400;">Overwrites local global presets</div>
+          </div>
+        </button>
+
+        <button class="btn btn-outline" id="syncPushBtn" style="width: 100%; justify-content: flex-start; margin-top: 4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" x2="12" y1="3" y2="15" />
+          </svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 4px;">
+            <div>Push Updates to GitHub</div>
+            <div style="font-size: 10px; opacity: 0.8; font-weight: 400;">Commits directly to repository</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Resize Handle -->
   <div class="resize-overlay" id="resizeOverlay"></div>
   <div class="resize-handle" id="resizeHandle" title="Drag to resize">
@@ -1248,6 +1348,17 @@
         personalClasses = msg.classes || [];
         renderList("personal", document.getElementById("personalSearchInput").value.trim().toLowerCase());
       }
+      if (msg.type === "github-settings-loaded") {
+        if (msg.settings) {
+          document.getElementById('syncGitHubTokenInput').value = msg.settings.token || "";
+          document.getElementById('syncGitHubRepoInput').value = msg.settings.repo || "";
+          document.getElementById('syncGitHubBranchInput').value = msg.settings.branch || "";
+          document.getElementById('syncGitHubPathInput').value = msg.settings.path || "";
+        }
+      }
+      if (msg.type === "push-global-ready") {
+        doGitHubPush(msg.classes);
+      }
       if (msg.type === "selection-changed") {
         hasValidSelection = msg.hasValidSelection;
         // Update both panels' selection indicators and save sections
@@ -1272,7 +1383,7 @@
 
     // ── Tab switching (shadcn data-state pattern) ──
     function switchTab(tab) {
-      activeTab = tab;
+      activeTab = tab; // "global" | "personal" | "sync"
       // Update trigger states (data-state + aria-selected)
       document.querySelectorAll(".tab-trigger").forEach((btn) => {
         const isActive = btn.dataset.tab === tab;
@@ -1285,17 +1396,17 @@
       });
 
       // Show/hide scope-specific export/import buttons
-      const isGlobal = tab === "global";
-      document.getElementById("globalExportBtn").style.display = isGlobal ? "" : "none";
-      document.getElementById("globalImportBtn").style.display = isGlobal ? "" : "none";
-      document.getElementById("personalExportBtn").style.display = isGlobal ? "none" : "";
-      document.getElementById("personalImportBtn").style.display = isGlobal ? "none" : "";
+      document.getElementById("globalExportBtn").style.display = tab === "global" ? "" : "none";
+      document.getElementById("globalImportBtn").style.display = tab === "global" ? "" : "none";
+      document.getElementById("personalExportBtn").style.display = tab === "personal" ? "" : "none";
+      document.getElementById("personalImportBtn").style.display = tab === "personal" ? "" : "none";
     }
 
     function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
     document.getElementById("tabGlobal").addEventListener("click", () => switchTab("global"));
     document.getElementById("tabPersonal").addEventListener("click", () => switchTab("personal"));
+    document.getElementById("tabSync").addEventListener("click", () => switchTab("sync"));
 
     // ── Render ──
     function renderList(scope, filter = "") {
@@ -1700,6 +1811,136 @@
       overlay.addEventListener("mousemove", onMouseMove);
       overlay.addEventListener("mouseup", onMouseUp);
     })();
+
+    // ── GitHub Sync Logc ──
+    const utf8_to_b64 = (str) => window.btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+    const b64_to_utf8 = (str) => decodeURIComponent(window.atob(str).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+
+    function getGitHubSettings() {
+      return {
+        token: document.getElementById('syncGitHubTokenInput').value.trim(),
+        repo: document.getElementById('syncGitHubRepoInput').value.trim(),
+        branch: document.getElementById('syncGitHubBranchInput').value.trim(),
+        path: document.getElementById('syncGitHubPathInput').value.trim(),
+      };
+    }
+
+    document.getElementById('syncSaveSettingsBtn').addEventListener('click', () => {
+      const settings = getGitHubSettings();
+      if (!settings.token || !settings.repo || !settings.branch || !settings.path) {
+        showToast("Please fill all GitHub configuration fields.", "error");
+        return;
+      }
+      post({ type: 'save-github-settings', settings });
+    });
+
+    document.getElementById('syncPullBtn').addEventListener('click', async () => {
+      const settings = getGitHubSettings();
+      if (!settings.token || !settings.repo || !settings.branch || !settings.path) {
+        showToast("Please fully configure GitHub settings first.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('syncPullBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "Pulling...";
+      btn.disabled = true;
+
+      try {
+        const url = `https://api.github.com/repos/${settings.repo}/contents/${settings.path}?ref=${settings.branch}`;
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `token ${settings.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (!res.ok) {
+          if (res.status === 404) throw new Error("File not found on GitHub");
+          throw new Error(`GitHub API Error: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        const contentStr = b64_to_utf8(data.content);
+        let classes;
+        try {
+          classes = JSON.parse(contentStr);
+          if (!Array.isArray(classes)) throw new Error("Format is not a valid preset array");
+        } catch (e) {
+          throw new Error("Invalid format in GitHub source: " + e.message);
+        }
+
+        post({ type: "overwrite-classes", classes: classes });
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('syncPushBtn').addEventListener('click', () => {
+      const settings = getGitHubSettings();
+      if (!settings.token || !settings.repo || !settings.branch || !settings.path) {
+        showToast("Please fully configure GitHub settings first.", "error");
+        return;
+      }
+      post({ type: "push-global-classes" });
+    });
+
+    async function doGitHubPush(classes) {
+      const settings = getGitHubSettings();
+      const btn = document.getElementById('syncPushBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "Pushing...";
+      btn.disabled = true;
+
+      try {
+        const url = `https://api.github.com/repos/${settings.repo}/contents/${settings.path}`;
+        const headers = {
+          'Authorization': `token ${settings.token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        };
+
+        // 1. Try to get existing file SHA
+        let currentSha = null;
+        try {
+          const res = await fetch(`${url}?ref=${settings.branch}`, { headers });
+          if (res.ok) {
+            const currentData = await res.json();
+            currentSha = currentData.sha;
+          }
+        } catch (e) { }
+
+        // 2. Push update
+        const contentB64 = utf8_to_b64(JSON.stringify(classes, null, 2));
+        const bodyObj = {
+          message: "Automated update from Figma Style Manager",
+          content: contentB64,
+          branch: settings.branch
+        };
+        if (currentSha) bodyObj.sha = currentSha;
+
+        const pushRes = await fetch(url, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(bodyObj)
+        });
+
+        if (!pushRes.ok) {
+          const errData = await pushRes.json();
+          throw new Error(`GitHub Push Error: ${errData.message}`);
+        }
+
+        showToast("Successfully pushed global presets to GitHub!");
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
   </script>
 </body>
 

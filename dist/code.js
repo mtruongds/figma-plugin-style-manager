@@ -534,12 +534,19 @@
     });
   }
   (async () => {
-    const [globalCls, personalCls] = await Promise.all([
+    const [globalCls, personalCls, githubSettings] = await Promise.all([
       loadClasses("global"),
-      loadClasses("personal")
+      loadClasses("personal"),
+      figma.clientStorage.getAsync("github-settings")
     ]);
     figma.ui.postMessage({ type: "global-classes-loaded", classes: globalCls });
     figma.ui.postMessage({ type: "personal-classes-loaded", classes: personalCls });
+    if (githubSettings) {
+      try {
+        figma.ui.postMessage({ type: "github-settings-loaded", settings: JSON.parse(githubSettings) });
+      } catch (e) {
+      }
+    }
     sendSelection();
   })();
   figma.on("selectionchange", sendSelection);
@@ -656,6 +663,28 @@
       } catch (e) {
         figma.ui.postMessage({ type: "error", message: `Import failed: ${e}` });
       }
+    }
+    if (msg.type === "overwrite-classes") {
+      try {
+        if (!Array.isArray(msg.classes)) throw new Error("Invalid format");
+        await saveClasses(scope, msg.classes);
+        notifyLoaded(scope, msg.classes);
+        figma.ui.postMessage({ type: "success", message: `Pulled from GitHub and updated presets.` });
+      } catch (e) {
+        figma.ui.postMessage({ type: "error", message: `Pull failed: ${e}` });
+      }
+    }
+    if (msg.type === "save-github-settings") {
+      try {
+        await figma.clientStorage.setAsync("github-settings", JSON.stringify(msg.settings));
+        figma.ui.postMessage({ type: "success", message: "GitHub settings saved." });
+      } catch (err) {
+        figma.ui.postMessage({ type: "error", message: `Failed to save GitHub settings: ${err}` });
+      }
+    }
+    if (msg.type === "push-global-classes") {
+      const globalCls = await loadClasses("global");
+      figma.ui.postMessage({ type: "push-global-ready", classes: globalCls });
     }
   };
 })();
