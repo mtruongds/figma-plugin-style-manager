@@ -1280,6 +1280,16 @@
       <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
         <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Sync Global Presets</div>
         
+        <button class="btn btn-outline" id="syncTestBtn" style="width: 100%; justify-content: flex-start; margin-bottom: 8px; color: var(--sync-accent); border-color: var(--sync-accent-border);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 4px;">
+            <div>Test Connection</div>
+            <div style="font-size: 10px; opacity: 0.8; font-weight: 400;">Verify Repository & PAT</div>
+          </div>
+        </button>
+
         <button class="btn btn-primary" id="syncPullBtn" style="width: 100%; justify-content: flex-start;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -1860,7 +1870,9 @@
         });
 
         if (!res.ok) {
-          if (res.status === 404) throw new Error("File not found on GitHub");
+          if (res.status === 404) {
+            throw new Error("File not found on GitHub. Did you push it yet? Ensure your repo exists and PAT has 'repo' scope.");
+          }
           let errData = {};
           try { errData = await res.json(); } catch(e) {}
           throw new Error(`GitHub Pull Error (${res.status}): ${errData.message || res.statusText}`);
@@ -1952,6 +1964,42 @@
         btn.disabled = false;
       }
     }
+    // ── Test Connection Logic ──
+    document.getElementById('syncTestBtn').addEventListener('click', async () => {
+      const settings = getGitHubSettings();
+      if (!settings.token || !settings.repo) {
+        showToast("Please enter at least Token and Repo to test.", "error");
+        return;
+      }
+      
+      const btn = document.getElementById('syncTestBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "Testing...";
+      btn.disabled = true;
+
+      try {
+        const url = `https://api.github.com/repos/${settings.repo}`;
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `token ${settings.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (res.ok) {
+          showToast("Connection Successful! Repository found.");
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(`Connection Failed (${res.status}): ${errData.message || res.statusText}`);
+        }
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+
   </script>
 </body>
 
