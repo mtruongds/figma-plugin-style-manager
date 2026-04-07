@@ -1857,7 +1857,9 @@
 
         if (!res.ok) {
           if (res.status === 404) throw new Error("File not found on GitHub");
-          throw new Error(`GitHub API Error: ${res.statusText}`);
+          let errData = {};
+          try { errData = await res.json(); } catch(e) {}
+          throw new Error(`GitHub Pull Error (${res.status}): ${errData.message || res.statusText}`);
         }
 
         const data = await res.json();
@@ -1929,8 +1931,9 @@
         });
 
         if (!pushRes.ok) {
-          const errData = await pushRes.json();
-          throw new Error(`GitHub Push Error: ${errData.message}`);
+          let errData = {};
+          try { errData = await pushRes.json(); } catch(e) {}
+          throw new Error(`GitHub Push Error (${pushRes.status}): ${errData.message || pushRes.statusText}`);
         }
 
         showToast("Successfully pushed global presets to GitHub!");
