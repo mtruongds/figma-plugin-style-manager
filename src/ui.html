@@ -85,7 +85,7 @@
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      min-width: 340px;
+      min-width: 360px;
     }
 
     /* ── Header (shadcn Sidebar Header pattern) ── */
@@ -836,7 +836,8 @@
       width: 16px;
       height: 16px;
       border: 1px solid var(--input);
-      border-radius: 4px; /* rounded-[4px] */
+      border-radius: 4px;
+      /* rounded-[4px] */
       background-color: var(--background);
       margin: 0;
       cursor: pointer;
@@ -854,7 +855,8 @@
 
     .checkbox:focus-visible {
       border-color: var(--ring);
-      box-shadow: 0 0 0 3px hsl(240 4.9% 83.9% / 0.5); /* focus-visible:ring-[3px] focus-visible:ring-ring/50 */
+      box-shadow: 0 0 0 3px hsl(240 4.9% 83.9% / 0.5);
+      /* focus-visible:ring-[3px] focus-visible:ring-ring/50 */
     }
 
     .checkbox:checked,
@@ -994,8 +996,7 @@
           <span class="tab-dot"></span>
           Personal
         </button>
-        <button class="tab-trigger" id="tabSync" data-tab="sync" data-state="inactive" role="tab"
-          aria-selected="false">
+        <button class="tab-trigger" id="tabSync" data-tab="sync" data-state="inactive" role="tab" aria-selected="false">
           <span class="tab-dot"></span>
           Sync
         </button>
@@ -1100,7 +1101,8 @@
           </svg>
         </div>
         <div class="empty-state-title">No global presets yet</div>
-        <div class="empty-state-description">Save a class below — it will be available across all your files on this device.</div>
+        <div class="empty-state-description">Save a class below — it will be available across all your files on this
+          device.</div>
       </div>
     </div>
 
@@ -1234,31 +1236,37 @@
   <!-- ═══════════════════════════════════ SYNC TAB ═══════════════════════════════════ -->
   <div class="tab-panel" id="panelSync" data-scope="sync">
     <div class="scope-banner sync-banner">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-        <path d="M3 3v5h5"/>
-        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-        <path d="M16 21v-5h5"/>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+        <path d="M16 21v-5h5" />
       </svg>
       Link global presets with a GitHub repository
     </div>
 
     <div style="padding: 16px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
       <!-- Credentials Setup -->
-      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div
+        style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
         <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
-            <path d="M9 18c-4.51 2-5-2-7-2"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+            <path d="M9 18c-4.51 2-5-2-7-2" />
           </svg>
           <span style="flex: 1;">GitHub Configuration</span>
-          <button class="btn btn-outline" id="syncSaveSettingsBtn" style="padding: 4px 8px; height: auto;" title="Save settings locally">Save Settings</button>
+          <button class="btn btn-outline" id="syncSaveSettingsBtn" style="padding: 4px 8px; height: auto;"
+            title="Save settings locally">Save Settings</button>
         </div>
 
         <div class="field">
           <label class="field-label" for="syncGitHubTokenInput">Personal Access Token</label>
           <input class="input" id="syncGitHubTokenInput" type="password" placeholder="ghp_xxx..." />
-          <div style="font-size: 11px; color: var(--muted-foreground); margin-top: 4px;">Needs 'repo' or 'contents:write' scope</div>
+          <div style="font-size: 11px; color: var(--muted-foreground); margin-top: 4px;">Needs 'repo' or
+            'contents:write' scope</div>
         </div>
 
         <div class="field">
@@ -1278,11 +1286,14 @@
       </div>
 
       <!-- Sync Actions -->
-      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div
+        style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
         <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Sync Global Presets</div>
-        
-        <button class="btn btn-outline" id="syncTestBtn" style="width: 100%; justify-content: flex-start; margin-bottom: 8px; color: var(--sync-accent); border-color: var(--sync-accent-border);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+        <button class="btn btn-outline" id="syncTestBtn"
+          style="width: 100%; justify-content: flex-start; margin-bottom: 8px; color: var(--sync-accent); border-color: var(--sync-accent-border);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
           </svg>
           <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 4px;">
@@ -1292,7 +1303,8 @@
         </button>
 
         <button class="btn btn-primary" id="syncPullBtn" style="width: 100%; justify-content: flex-start;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" x2="12" y1="15" y2="3" />
@@ -1303,8 +1315,10 @@
           </div>
         </button>
 
-        <button class="btn btn-outline" id="syncPushBtn" style="width: 100%; justify-content: flex-start; margin-top: 4px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button class="btn btn-outline" id="syncPushBtn"
+          style="width: 100%; justify-content: flex-start; margin-top: 4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" x2="12" y1="3" y2="15" />
@@ -1769,7 +1783,7 @@
     (() => {
       const handle = document.getElementById("resizeHandle");
       const overlay = document.getElementById("resizeOverlay");
-      const MIN_W = 340;
+      const MIN_W = 360;
       const MIN_H = 400;
       const MAX_W = 800;
       const MAX_H = 1200;
@@ -1875,7 +1889,7 @@
             throw new Error("File not found on GitHub. Did you push it yet? Ensure your repo exists and PAT has 'repo' scope.");
           }
           let errData = {};
-          try { errData = await res.json(); } catch(e) {}
+          try { errData = await res.json(); } catch (e) { }
           throw new Error(`GitHub Pull Error (${res.status}): ${errData.message || res.statusText}`);
         }
 
@@ -1953,7 +1967,7 @@
 
         if (!pushRes.ok) {
           let errData = {};
-          try { errData = await pushRes.json(); } catch(e) {}
+          try { errData = await pushRes.json(); } catch (e) { }
           let extra = "";
           if (pushRes.status === 403) extra = " Make sure your PAT has 'Contents: Write' permission and the branch is not protected.";
           throw new Error(`GitHub Push Error (${pushRes.status}): ${errData.message || pushRes.statusText}${extra}`);
@@ -1974,7 +1988,7 @@
         showToast("Please enter at least Token and Repo to test.", "error");
         return;
       }
-      
+
       const btn = document.getElementById('syncTestBtn');
       const originalText = btn.innerHTML;
       btn.innerHTML = "Testing...";
