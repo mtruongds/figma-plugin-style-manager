@@ -1953,7 +1953,9 @@
         if (!pushRes.ok) {
           let errData = {};
           try { errData = await pushRes.json(); } catch(e) {}
-          throw new Error(`GitHub Push Error (${pushRes.status}): ${errData.message || pushRes.statusText}`);
+          let extra = "";
+          if (pushRes.status === 403) extra = " Make sure your PAT has 'Contents: Write' permission and the branch is not protected.";
+          throw new Error(`GitHub Push Error (${pushRes.status}): ${errData.message || pushRes.statusText}${extra}`);
         }
 
         showToast("Successfully pushed global presets to GitHub!");

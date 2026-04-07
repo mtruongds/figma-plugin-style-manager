@@ -84,6 +84,24 @@ npm run dev
 1. To backup your classes, click the **Export** (download) icon in the header. This saves a `class-manager-presets.json` file.
 2. To restore or add presets, click the **Import** (upload) icon and select a valid presets JSON file. Imported classes will be merged with your locally stored ones.
 
+### Advanced: GitHub Sync
+Synchronize your global presets across different Figma accounts and machines using a GitHub repository as the source of truth.
+
+1. **Setup Repository**: Create a GitHub repository (e.g., `username/figma-presets`).
+2. **Generate Token**: Go to GitHub -> Settings -> Developer settings -> Personal access tokens.
+   - **Fine-grained Token (Recommended)**: Grant **Read and write** access to **"Contents"** for your repository.
+   - **Classic Token**: Check the `repo` scope.
+3. **Configure Plugin**: In the **Sync** tab, enter your GitHub details:
+   - **Repo**: `username/repository-name`
+   - **Branch**: `main` (or your preferred branch)
+   - **File Path**: `global.json` (where shared global classes will be stored)
+4. **Push/Pull**:
+   - **Push**: Overwrites the file on GitHub with your local global classes.
+   - **Pull**: Overwrites your local global classes with the version from GitHub.
+
+> [!TIP]
+> If you get a **403 Error** when pushing, double-check that your Personal Access Token has **Write** permissions for "Contents" and that the branch is not protected by rules that block direct pushes.
+
 ## License
 
 MIT
