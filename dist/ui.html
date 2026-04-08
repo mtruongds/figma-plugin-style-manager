@@ -757,47 +757,61 @@
       flex-shrink: 0;
     }
 
-    /* ── Toast (shadcn Sonner-inspired) ── */
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      padding: 10px 14px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      font-weight: 500;
-      z-index: 100;
-      transform: translateY(calc(100% + 24px));
-      transition: transform var(--transition-slow);
-      pointer-events: none;
-      backdrop-filter: blur(8px);
-      display: flex;
+    /* ── Alert (shadcn Alert pattern) ── */
+    .alert {
+      display: none;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 12px hsl(0 0% 0% / 0.3);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.4;
+      flex-shrink: 0;
+      animation: alertSlideIn 0.2s ease;
     }
 
-    .toast.show {
-      transform: translateY(0);
+    @keyframes alertSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .toast.success {
-      background: hsl(142 76% 36% / 0.12);
-      border: 1px solid hsl(142 76% 36% / 0.3);
+    .alert.visible {
+      display: flex;
+    }
+
+    .alert.success {
+      background: hsl(142 76% 36% / 0.10);
+      border-color: hsl(142 76% 36% / 0.35);
       color: hsl(142 76% 50%);
     }
 
-    .toast.error {
-      background: hsl(0 62.8% 30.6% / 0.12);
-      border: 1px solid hsl(0 62.8% 30.6% / 0.3);
-      color: hsl(0 62.8% 55%);
+    .alert.error {
+      background: hsl(0 62.8% 30.6% / 0.10);
+      border-color: hsl(0 62.8% 30.6% / 0.35);
+      color: hsl(0 62.8% 58%);
     }
 
-    .toast-icon {
+    .alert-icon {
       flex-shrink: 0;
       display: flex;
       align-items: center;
+    }
+
+    .alert-message {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ── Keyboard shortcut hint ── */
@@ -1342,10 +1356,10 @@
     </svg>
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast">
-    <span class="toast-icon" id="toastIcon"></span>
-    <span id="toastMessage"></span>
+  <!-- Alert -->
+  <div class="alert" id="alert" role="alert" aria-live="polite">
+    <span class="alert-icon" id="alertIcon"></span>
+    <span class="alert-message" id="alertMessage"></span>
   </div>
 
   <script>
@@ -1774,26 +1788,25 @@
       renderList("personal", e.target.value.trim().toLowerCase());
     });
 
-    // ── Toast ──
-    let toastTimer = null;
+    // ── Alert ──
+    let alertTimer = null;
     function showToast(message, type = "success") {
-      const toast = document.getElementById("toast");
-      const toastMsg = document.getElementById("toastMessage");
-      const toastIcon = document.getElementById("toastIcon");
+      const alert = document.getElementById("alert");
+      const alertMsg = document.getElementById("alertMessage");
+      const alertIcon = document.getElementById("alertIcon");
 
-      toastMsg.textContent = message;
-      toast.className = "toast " + type;
+      alertMsg.textContent = message;
+      alert.className = "alert " + type;
 
       if (type === "success") {
-        toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+        alertIcon.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
       } else {
-        toastIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
+        alertIcon.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
       }
 
-      void toast.offsetWidth; // reflow
-      toast.classList.add("show");
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+      alert.classList.add("visible");
+      if (alertTimer) clearTimeout(alertTimer);
+      alertTimer = setTimeout(() => alert.classList.remove("visible"), 2800);
     }
 
     // ── Resize Handle ──
