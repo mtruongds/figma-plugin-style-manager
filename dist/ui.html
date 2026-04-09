@@ -536,29 +536,48 @@
       color: var(--muted-foreground);
     }
 
-    /* ── ScrollArea (shadcn ScrollArea) ── */
+    /* ── ScrollArea (Modern macOS style with overlay) ── */
     .list-container {
       flex: 1;
-      overflow-y: auto;
+      overflow-y: auto; /* Fallback */
+      overflow-y: overlay; /* Overlays the content to prevent layout shift */
       scrollbar-width: thin;
-      scrollbar-color: hsl(240 3.7% 22%) transparent;
+      scrollbar-color: var(--muted-foreground) transparent;
     }
 
-    .list-container::-webkit-scrollbar {
-      width: 6px;
+    /* Global Webkit Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
     }
 
-    .list-container::-webkit-scrollbar-track {
+    ::-webkit-scrollbar-track {
       background: transparent;
     }
 
-    .list-container::-webkit-scrollbar-thumb {
-      background: hsl(240 3.7% 22%);
-      border-radius: 3px;
+    ::-webkit-scrollbar-thumb {
+      background-color: transparent;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+      transition: background-color 0.2s ease;
     }
 
-    .list-container::-webkit-scrollbar-thumb:hover {
-      background: hsl(240 3.7% 28%);
+    /* Show thumb on hover of any scrollable area */
+    *:hover::-webkit-scrollbar-thumb {
+      background-color: var(--muted-foreground);
+      opacity: 0.4;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--foreground) !important;
+      opacity: 0.8;
+    }
+
+    /* Specific fix for Sync panel scrollable div */
+    #panelSync > div {
+      overflow-y: auto;
+      overflow-y: overlay;
     }
 
     /* ── Scope info banner ── */
