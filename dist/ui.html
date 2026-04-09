@@ -539,8 +539,10 @@
     /* ── ScrollArea (Modern macOS style with overlay) ── */
     .list-container {
       flex: 1;
-      overflow-y: auto; /* Fallback */
-      overflow-y: overlay; /* Overlays the content to prevent layout shift */
+      overflow-y: auto;
+      /* Fallback */
+      overflow-y: overlay;
+      /* Overlays the content to prevent layout shift */
       scrollbar-width: thin;
       scrollbar-color: var(--muted-foreground) transparent;
     }
@@ -575,7 +577,7 @@
     }
 
     /* Specific fix for Sync panel scrollable div */
-    #panelSync > div {
+    #panelSync>div {
       overflow-y: auto;
       overflow-y: overlay;
     }
@@ -827,15 +829,15 @@
 
     .selection-indicator.has-selection .selection-dot {
       background: var(--success);
-      box-shadow: 0 0 6px hsl(142 76% 36% / 0.4);
+      box-shadow: 0 0 6px hsla(142, 82%, 70%, 0.8);
     }
 
     .selection-indicator.has-selection {
-      border-color: hsl(142 76% 36% / 0.3);
+      border-color: hsl(151 100% 28% / 0.8);
     }
 
     .selection-text {
-      color: var(--muted-foreground);
+      color: var(--muted);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -843,7 +845,7 @@
     }
 
     .selection-indicator.has-selection .selection-text {
-      color: hsl(142 76% 50%);
+      color: var(--foreground);
     }
 
     /* ── Separator ── */
