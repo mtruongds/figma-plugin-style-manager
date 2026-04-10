@@ -63,7 +63,7 @@ npm run dev
 ├── src/
 │   ├── code.ts        # Main plugin sandbox logic (Node API)
 │   └── ui.html        # Plugin UI (HTML/CSS/JS)
-├── dist/              # Bundled distribution (ignored by git)
+├── dist/              
 ├── manifest.json      # Figma plugin manifest
 └── build.js           # esbuild build script
 ```
