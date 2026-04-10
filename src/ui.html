@@ -126,14 +126,14 @@
       --muted-foreground: var(--figma-color-text-secondary);
       --accent: var(--figma-color-bg-hover);
       --accent-foreground: var(--figma-color-text);
-      --destructive: hsl(0 84.2% 60.2%);
+      --destructive: var(--figma-color-text-danger);
       --destructive-foreground: hsl(0 0% 98%);
       --border: var(--figma-color-border);
       --input: var(--figma-color-border);
       --ring: var(--figma-color-border-brand);
-      --success: hsl(142 76% 36%);
+      --success: var(--figma-color-text-success);
       --success-foreground: hsl(0 0% 98%);
-      --warning: hsl(48 96% 53%);
+      --warning: var(--figma-color-text-warning);
       --warning-foreground: hsl(0 0% 0%);
 
       /* Sidebar-specific tokens */
@@ -253,7 +253,6 @@
     .tab-trigger[data-state="active"] {
       background: var(--background);
       color: var(--foreground);
-      border-color: var(--border);
       box-shadow: 0 1px 2px hsl(0 0% 0% / 0.15);
     }
 
@@ -875,27 +874,31 @@
     .alert {
       display: none;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       padding: 10px 14px;
-      margin: 16px;
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 20px;
+      z-index: 1000;
       border-radius: var(--radius);
       border: 1px solid var(--border);
       font-size: 12px;
       font-weight: 500;
       line-height: 1.4;
-      flex-shrink: 0;
-      animation: alertSlideIn 0.2s ease;
+      box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.24), 0 4px 8px -2px rgba(0, 0, 0, 0.12);
+      animation: alertSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @keyframes alertSlideIn {
       from {
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(12px) scale(0.96);
       }
 
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -904,15 +907,17 @@
     }
 
     .alert.success {
-      background: hsl(142 76% 36% / 0.10);
-      border-color: hsl(142 76% 36% / 0.35);
+      background: var(--popover);
+      border-color: var(--border);
       color: var(--success);
+      /* Bright success green for alert */
     }
 
     .alert.error {
-      background: hsl(0 62.8% 30.6% / 0.10);
-      border-color: hsl(0 62.8% 30.6% / 0.35);
-      color: var(--destructive);
+      background: var(--popover);
+      border-color: var(--border);
+      color: hsl(358 65% 49%);
+      /* Bright error red for alert */
     }
 
     .alert-icon {
@@ -1584,8 +1589,8 @@
           metaEl.textContent = `Latest update: ${formatDate(new Date(date))}`;
         }
       }
-      if (msg.type === "success") showToast(msg.message, "success");
-      if (msg.type === "error") showToast(msg.message, "error");
+      if (msg.type === "success") showAlert(msg.message, "success");
+      if (msg.type === "error") showAlert(msg.message, "error");
     };
 
     // ── Tab switching (shadcn data-state pattern) ──
@@ -1867,25 +1872,25 @@
     document.getElementById("globalSaveBtn").addEventListener("click", () => {
       const name = document.getElementById("globalNameInput").value.trim();
       const label = document.getElementById("globalLabelInput").value.trim();
-      if (!name) { showToast("Enter a class name.", "error"); return; }
+      if (!name) { showAlert("Enter a class name.", "error"); return; }
       post({ type: "save-class", name, label, scope: "global" });
     });
 
     document.getElementById("personalSaveBtn").addEventListener("click", () => {
       const name = document.getElementById("personalNameInput").value.trim();
       const label = document.getElementById("personalLabelInput").value.trim();
-      if (!name) { showToast("Enter a class name.", "error"); return; }
+      if (!name) { showAlert("Enter a class name.", "error"); return; }
       post({ type: "save-class", name, label, scope: "personal" });
     });
 
     // ── Export actions ──
     document.getElementById("globalExportBtn").addEventListener("click", () => {
-      if (globalClasses.length === 0) { showToast("No global classes to export.", "error"); return; }
+      if (globalClasses.length === 0) { showAlert("No global classes to export.", "error"); return; }
       downloadJSON(globalClasses, "global-class-presets.json");
     });
 
     document.getElementById("personalExportBtn").addEventListener("click", () => {
-      if (personalClasses.length === 0) { showToast("No personal classes to export.", "error"); return; }
+      if (personalClasses.length === 0) { showAlert("No personal classes to export.", "error"); return; }
       downloadJSON(personalClasses, "personal-class-presets.json");
     });
 
@@ -1919,7 +1924,7 @@
             if (!Array.isArray(importedData)) throw new Error("Invalid preset format");
             post({ type: "import-classes", classes: importedData, scope });
           } catch (err) {
-            showToast("Failed to parse JSON file.", "error");
+            showAlert("Failed to parse JSON file.", "error");
           }
           e.target.value = "";
         };
@@ -1941,7 +1946,7 @@
 
     // ── Alert ──
     let alertTimer = null;
-    function showToast(message, type = "success") {
+    function showAlert(message, type = "success") {
       const alert = document.getElementById("alert");
       const alertMsg = document.getElementById("alertMessage");
       const alertIcon = document.getElementById("alertIcon");
@@ -2040,7 +2045,7 @@
     document.getElementById('syncSaveSettingsBtn').addEventListener('click', () => {
       const settings = getGitHubSettings();
       if (!settings.token || !settings.repo || !settings.branch || !settings.path) {
-        showToast("Please fill all GitHub configuration fields.", "error");
+        showAlert("Please fill all GitHub configuration fields.", "error");
         return;
       }
       post({ type: 'save-github-settings', settings });
@@ -2049,7 +2054,7 @@
     document.getElementById('syncPullBtn').addEventListener('click', async () => {
       const settings = getGitHubSettings();
       if (!settings.token || !settings.repo || !settings.branch || !settings.path) {
-        showToast("Please fully configure GitHub settings first.", "error");
+        showAlert("Please fully configure GitHub settings first.", "error");
         return;
       }
 
@@ -2092,7 +2097,7 @@
 
         post({ type: "overwrite-classes", classes: classes });
       } catch (err) {
-        showToast(err.message, "error");
+        showAlert(err.message, "error");
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -2102,7 +2107,7 @@
     document.getElementById('syncPushBtn').addEventListener('click', () => {
       const settings = getGitHubSettings();
       if (!settings.token || !settings.repo || !settings.branch || !settings.path) {
-        showToast("Please fully configure GitHub settings first.", "error");
+        showAlert("Please fully configure GitHub settings first.", "error");
         return;
       }
       post({ type: "push-global-classes" });
@@ -2160,9 +2165,9 @@
           throw new Error(`GitHub Push Error (${pushRes.status}): ${errData.message || pushRes.statusText}${extra}`);
         }
 
-        showToast("Successfully pushed global presets to GitHub!");
+        showAlert("Successfully pushed global presets to GitHub!");
       } catch (err) {
-        showToast(err.message, "error");
+        showAlert(err.message, "error");
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -2172,7 +2177,7 @@
     document.getElementById('syncTestBtn').addEventListener('click', async () => {
       const settings = getGitHubSettings();
       if (!settings.token || !settings.repo) {
-        showToast("Please enter at least Token and Repo to test.", "error");
+        showAlert("Please enter at least Token and Repo to test.", "error");
         return;
       }
 
@@ -2191,13 +2196,13 @@
         });
 
         if (res.ok) {
-          showToast("Connection Successful! Repository found.");
+          showAlert("Connection Successful! Repository found.");
         } else {
           const errData = await res.json().catch(() => ({}));
           throw new Error(`Connection Failed (${res.status}): ${errData.message || res.statusText}`);
         }
       } catch (err) {
-        showToast(err.message, "error");
+        showAlert(err.message, "error");
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
