@@ -804,6 +804,63 @@
     sendSelection();
   })();
   figma.on("selectionchange", sendSelection);
+  async function handleInsertClass(id, scope, dropEvent) {
+    try {
+      const classes = await loadClasses(scope);
+      const cls = classes.find((c) => c.id === id);
+      if (!cls) {
+        figma.ui.postMessage({ type: "error", message: "Class not found." });
+        return;
+      }
+      const tree = cls.nodeTree;
+      if (!tree) {
+        figma.ui.postMessage({ type: "error", message: "Class has no node data." });
+        return;
+      }
+      const fontSet = /* @__PURE__ */ new Set();
+      await collectFonts(tree, fontSet);
+      await Promise.all(
+        Array.from(fontSet).map((key) => {
+          const [family, style] = key.split("::");
+          return figma.loadFontAsync({ family, style });
+        })
+      );
+      let parentNode = figma.currentPage;
+      if (dropEvent && dropEvent.node && "appendChild" in dropEvent.node) {
+        parentNode = dropEvent.node;
+      }
+      const created = await restoreNode(tree, parentNode);
+      if (created) {
+        if (dropEvent) {
+          created.x = dropEvent.x - created.width / 2;
+          created.y = dropEvent.y - created.height / 2;
+        } else {
+          const center = figma.viewport.center;
+          created.x = center.x - created.width / 2;
+          created.y = center.y - created.height / 2;
+        }
+        figma.currentPage.selection = [created];
+        if (!dropEvent) {
+          figma.viewport.scrollAndZoomIntoView([created]);
+        }
+      }
+      figma.ui.postMessage({ type: "success", message: `"${cls.name}" inserted.` });
+    } catch (err) {
+      const e = String(err);
+      if (e.includes("layoutMode") || e.includes("itemReverseZIndex")) {
+        figma.ui.postMessage({ type: "error", message: "Frame must use Auto Layout\u2014select the frame and enable Auto Layout in the right panel." });
+      } else {
+        figma.ui.postMessage({ type: "error", message: `Insert failed: ${e}` });
+      }
+    }
+  }
+  figma.on("drop", (event) => {
+    const { dropMetadata } = event;
+    if (dropMetadata && dropMetadata.action === "insert-class") {
+      handleInsertClass(dropMetadata.id, dropMetadata.scope, event);
+      return false;
+    }
+  });
   figma.ui.onmessage = async (msg) => {
     if (msg.type === "resize") {
       figma.ui.resize(msg.width, msg.height);
@@ -856,43 +913,7 @@
       }
     }
     if (msg.type === "insert-class") {
-      try {
-        const classes = await loadClasses(scope);
-        const cls = classes.find((c) => c.id === msg.id);
-        if (!cls) {
-          figma.ui.postMessage({ type: "error", message: "Class not found." });
-          return;
-        }
-        const tree = cls.nodeTree;
-        if (!tree) {
-          figma.ui.postMessage({ type: "error", message: "Class has no node data." });
-          return;
-        }
-        const fontSet = /* @__PURE__ */ new Set();
-        await collectFonts(tree, fontSet);
-        await Promise.all(
-          Array.from(fontSet).map((key) => {
-            const [family, style] = key.split("::");
-            return figma.loadFontAsync({ family, style });
-          })
-        );
-        const created = await restoreNode(tree, figma.currentPage);
-        if (created) {
-          const center = figma.viewport.center;
-          created.x = center.x - tree.width / 2;
-          created.y = center.y - tree.height / 2;
-          figma.currentPage.selection = [created];
-          figma.viewport.scrollAndZoomIntoView([created]);
-        }
-        figma.ui.postMessage({ type: "success", message: `"${cls.name}" inserted.` });
-      } catch (err) {
-        const e = String(err);
-        if (e.includes("layoutMode") || e.includes("itemReverseZIndex")) {
-          figma.ui.postMessage({ type: "error", message: "Frame must use Auto Layout\u2014select the frame and enable Auto Layout in the right panel." });
-        } else {
-          figma.ui.postMessage({ type: "error", message: `Insert failed: ${e}` });
-        }
-      }
+      handleInsertClass(msg.id, scope);
     }
     if (msg.type === "delete-class") {
       let classes = await loadClasses(scope);

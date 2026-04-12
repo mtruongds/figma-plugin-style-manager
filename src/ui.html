@@ -1698,6 +1698,20 @@
       item.className = "class-item" + (cls.id === selectedId ? " selected" : "");
       item.dataset.id = cls.id;
 
+      // Drag & Drop
+      item.draggable = true;
+      item.addEventListener("dragend", (e) => {
+        parent.postMessage({
+          pluginDrop: {
+            clientX: e.clientX,
+            clientY: e.clientY,
+            dropMetadata: { action: "insert-class", id: cls.id, scope },
+            items: [{ type: "text/plain", data: cls.name }]
+          }
+        }, "*");
+      });
+
+
       // Checkbox
       const checkboxWrap = document.createElement("div");
       checkboxWrap.className = "checkbox-wrapper";
@@ -2206,6 +2220,24 @@
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+      }
+    });
+
+    // ── Keyboard Shortcuts ──
+    document.addEventListener("keydown", (e) => {
+      // Don't intercept if user is typing in an input or textarea
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) return;
+
+      if (e.key === "/") {
+        e.preventDefault();
+        const activeTab = document.querySelector('.tab-trigger[data-state="active"]');
+        if (activeTab) {
+          const scope = activeTab.getAttribute("data-tab");
+          if (scope === "global" || scope === "personal") {
+            const searchInput = document.getElementById(scope + "SearchInput");
+            if (searchInput) searchInput.focus();
+          }
+        }
       }
     });
 
