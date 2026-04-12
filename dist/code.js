@@ -764,7 +764,8 @@
     figma.ui.postMessage({
       type: "selection-changed",
       hasValidSelection: node !== null,
-      nodeName: node ? node.name : ""
+      nodeName: node ? node.name : "",
+      parentName: node && node.parent && node.parent.type !== "PAGE" ? node.parent.name : ""
     });
   }
   async function loadClasses(scope) {
@@ -831,6 +832,11 @@
       }
       const created = await restoreNode(tree, parentNode);
       if (created) {
+        if (cls.label) {
+          created.name = `${cls.label} / ${cls.name}`;
+        } else {
+          created.name = cls.name;
+        }
         if (dropEvent) {
           created.x = dropEvent.x - created.width / 2;
           created.y = dropEvent.y - created.height / 2;
@@ -888,10 +894,10 @@
         const nodeTree = serializeNode(node);
         const classes = await loadClasses(scope);
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const existingIdx = classes.findIndex((c) => c.name === msg.name);
+        const existingIdx = classes.findIndex((c) => c.name === msg.name && (c.label || "") === (msg.label || ""));
         if (existingIdx >= 0) {
           classes[existingIdx].nodeTree = nodeTree;
-          classes[existingIdx].label = msg.label || classes[existingIdx].label;
+          classes[existingIdx].label = msg.label || "";
           classes[existingIdx].version = classes[existingIdx].version + 1;
           classes[existingIdx].updatedAt = now;
         } else {

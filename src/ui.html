@@ -280,6 +280,23 @@
       opacity: 0.4;
     }
 
+    /* ── Tab Notification Badges ── */
+    .notification-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 5px;
+      height: 5px;
+      background: var(--warning);
+      /* Vibrant color for notification */
+      border-radius: 50%;
+      box-shadow: 0 0 4px var(--warning);
+      pointer-events: none;
+      display: none;
+      /* Hidden by default */
+      z-index: 10;
+    }
+
     .tab-trigger[data-state="active"][data-tab="global"] .tab-dot {
       opacity: 1;
       box-shadow: 0 0 6px hsl(217 91% 60% / 0.4);
@@ -1130,11 +1147,13 @@
           aria-selected="true">
           <span class="tab-dot"></span>
           Global
+          <span class="notification-badge" id="globalMatchBadge"></span>
         </button>
         <button class="tab-trigger" id="tabPersonal" data-tab="personal" data-state="inactive" role="tab"
           aria-selected="false">
           <span class="tab-dot"></span>
           Personal
+          <span class="notification-badge" id="personalMatchBadge"></span>
         </button>
         <button class="tab-trigger" id="tabSync" data-tab="sync" data-state="inactive" role="tab" aria-selected="false">
           <span class="tab-dot"></span>
@@ -1561,14 +1580,111 @@
           const indicator = document.getElementById(scope + "SelectionIndicator");
           const text = document.getElementById(scope + "SelectionText");
           const saveSection = document.getElementById(scope + "SaveSection");
+          const nameInput = document.getElementById(scope + "NameInput");
+          const labelInput = document.getElementById(scope + "LabelInput");
+
           if (msg.hasValidSelection) {
             indicator.classList.add("has-selection");
             text.textContent = msg.nodeName || "Frame selected";
             saveSection.classList.add("visible");
+
+            const classes = scope === "global" ? globalClasses : personalClasses;
+            const nodeName = msg.nodeName || "";
+            const parentName = msg.parentName || "";
+
+            // Try to find matching class
+            let match = null;
+
+            // 1. Check for exact name match
+            const nameMatches = classes.filter(c => c.name === nodeName);
+
+            if (nameMatches.length === 1) {
+              match = nameMatches[0];
+            } else if (nameMatches.length > 1) {
+              // Strategy: Disambiguate by label
+              // Priorities: 
+              // a) Label exactly matches parent frame name
+              // b) Label is part of node name ("Label / Name")
+              // c) First match found
+              match = nameMatches.find(c => c.label && c.label === parentName) ||
+                nameMatches.find(c => c.label && nodeName.includes(c.label)) ||
+                nameMatches[0];
+            } else {
+              // 2. Try parsing "Label / Name" pattern if no direct name match
+              if (nodeName.includes("/")) {
+                const parts = nodeName.split("/").map(s => s.trim());
+                if (parts.length >= 2) {
+                  const potentialName = parts[parts.length - 1];
+                  const potentialLabel = parts.slice(0, parts.length - 1).join(" / ");
+                  match = classes.find(c => c.name === potentialName && c.label === potentialLabel);
+                }
+              }
+            }
+
+            if (match) {
+              nameInput.value = match.name;
+              labelInput.value = match.label || "";
+
+              // Show notification badge if match found in an inactive tab
+              const badge = document.getElementById(scope + "MatchBadge");
+              if (activeTab !== scope && badge) {
+                badge.style.display = "block";
+              } else if (badge) {
+                badge.style.display = "none";
+              }
+
+              // Sync selection state so clicking "Insert" works for this class
+              if (scope === "global") {
+                globalSelectedId = match.id;
+              } else {
+                personalSelectedId = match.id;
+              }
+
+              // Enable insert button
+              document.getElementById(scope + "InsertBtn").disabled = false;
+
+              // Update highlights in the list
+              const listItems = document.querySelectorAll("#panel" + capitalize(scope) + " .class-item");
+              listItems.forEach(item => {
+                if (item.getAttribute("data-id") === match.id) {
+                  item.classList.add("selected");
+                  // Smooth scroll to the item if it's not visible
+                  item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                  item.classList.remove("selected");
+                }
+              });
+
+            } else {
+              // Clear inputs and selection if no match found
+              nameInput.value = "";
+              labelInput.value = "";
+              if (scope === "global") globalSelectedId = null;
+              else personalSelectedId = null;
+
+              document.getElementById(scope + "InsertBtn").disabled = true;
+              document.querySelectorAll("#panel" + capitalize(scope) + " .class-item")
+                .forEach(el => el.classList.remove("selected"));
+
+              const badge = document.getElementById(scope + "MatchBadge");
+              if (badge) badge.style.display = "none";
+            }
           } else {
             indicator.classList.remove("has-selection");
             text.textContent = "No frame selected on canvas";
             saveSection.classList.remove("visible");
+            if (nameInput) nameInput.value = "";
+            if (labelInput) labelInput.value = "";
+            if (scope === "global") globalSelectedId = null;
+            else personalSelectedId = null;
+
+            const insertBtn = document.getElementById(scope + "InsertBtn");
+            if (insertBtn) insertBtn.disabled = true;
+            document.querySelectorAll("#panel" + capitalize(scope) + " .class-item")
+              .forEach(el => el.classList.remove("selected"));
+
+            const badge = document.getElementById(scope + "MatchBadge");
+            if (badge) badge.style.display = "none";
           }
         });
       }
@@ -1612,6 +1728,10 @@
       document.getElementById("globalImportBtn").style.display = tab === "global" ? "" : "none";
       document.getElementById("personalExportBtn").style.display = tab === "personal" ? "" : "none";
       document.getElementById("personalImportBtn").style.display = tab === "personal" ? "" : "none";
+
+      // Clear badge for the now active tab
+      const badge = document.getElementById(tab + "MatchBadge");
+      if (badge) badge.style.display = "none";
     }
 
     function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
