@@ -945,7 +945,7 @@ function notifyLoaded(scope: "global" | "personal", classes: ClassDefinition[]) 
 
 figma.on("selectionchange", sendSelection);
 
-async function handleInsertClass(id: string, scope: string, dropEvent?: DropEvent) {
+async function handleInsertClass(id: string, scope: string, dropEvent?: any) {
   try {
     const classes = await loadClasses(scope as any);
     const cls = classes.find((c: ClassDefinition) => c.id === id);
@@ -1003,7 +1003,7 @@ async function handleInsertClass(id: string, scope: string, dropEvent?: DropEven
   }
 }
 
-figma.on("drop", (event: DropEvent) => {
+(figma as any).on("drop", (event: any) => {
   const { dropMetadata } = event;
   if (dropMetadata && dropMetadata.action === "insert-class") {
     handleInsertClass(dropMetadata.id, dropMetadata.scope, event);
