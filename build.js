@@ -1,6 +1,7 @@
 const esbuild = require("esbuild");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const isWatch = process.argv.includes("--watch");
 
@@ -16,6 +17,16 @@ const buildCode = async () => {
     platform: "browser",
     target: "es2017",
     format: "iife",
+    plugins: [
+      {
+        name: "logger",
+        setup(build) {
+          build.onEnd(() => {
+            console.log(`[${new Date().toLocaleTimeString()}] ✅ code.js built`);
+          });
+        },
+      },
+    ],
   });
 
   if (isWatch) {
@@ -33,8 +44,18 @@ const copyUI = () => {
   const src = path.join(__dirname, "src", "ui.html");
   const dest = path.join(__dirname, "dist", "ui.html");
   fs.copyFileSync(src, dest);
-  console.log("✅ ui.html copied");
+  console.log(`[${new Date().toLocaleTimeString()}] ✅ ui.html copied`);
 };
+
+const getUIHash = () => {
+  try {
+    return crypto.createHash("md5").update(fs.readFileSync("src/ui.html")).digest("hex");
+  } catch (e) {
+    return "";
+  }
+};
+
+let lastUIHash = getUIHash();
 
 const build = async () => {
   await buildCode();
@@ -42,8 +63,16 @@ const build = async () => {
 
   if (isWatch) {
     // Watch for UI changes too
+    let timer;
     fs.watch("src/ui.html", () => {
-      copyUI();
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const currentHash = getUIHash();
+        if (currentHash !== lastUIHash) {
+          lastUIHash = currentHash;
+          copyUI();
+        }
+      }, 100);
     });
   }
 };

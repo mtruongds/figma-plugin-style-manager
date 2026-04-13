@@ -267,17 +267,17 @@
 
     .tab-trigger[data-tab="global"] .tab-dot {
       background: var(--global-accent);
-      opacity: 0.4;
+      opacity: 0.5;
     }
 
     .tab-trigger[data-tab="personal"] .tab-dot {
       background: var(--personal-accent);
-      opacity: 0.4;
+      opacity: 0.5;
     }
 
     .tab-trigger[data-tab="sync"] .tab-dot {
       background: var(--sync-accent);
-      opacity: 0.4;
+      opacity: 0.5;
     }
 
     /* ── Tab Notification Badges ── */
@@ -287,10 +287,9 @@
       right: 5px;
       width: 5px;
       height: 5px;
-      background: var(--warning);
+      background: var(--success);
       /* Vibrant color for notification */
       border-radius: 50%;
-      box-shadow: 0 0 4px var(--warning);
       pointer-events: none;
       display: none;
       /* Hidden by default */
@@ -1281,12 +1280,12 @@
 
       <div class="form-row">
         <div class="field">
-          <label class="field-label" for="globalNameInput">Name</label>
-          <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
-        </div>
-        <div class="field">
           <label class="field-label" for="globalLabelInput">Label</label>
           <input class="input" id="globalLabelInput" type="text" placeholder="e.g. Layout" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="globalNameInput">Name</label>
+          <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
         </div>
       </div>
 
@@ -1372,12 +1371,12 @@
 
       <div class="form-row">
         <div class="field">
-          <label class="field-label" for="personalNameInput">Name</label>
-          <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
-        </div>
-        <div class="field">
           <label class="field-label" for="personalLabelInput">Label</label>
           <input class="input" id="personalLabelInput" type="text" placeholder="e.g. Layout" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="personalNameInput">Name</label>
+          <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
         </div>
       </div>
 
@@ -2110,7 +2109,7 @@
       const handle = document.getElementById("resizeHandle");
       const overlay = document.getElementById("resizeOverlay");
       const MIN_W = 365;
-      const MIN_H = 400;
+      const MIN_H = 566;
       const MAX_W = 800;
       const MAX_H = 1200;
 
