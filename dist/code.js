@@ -748,7 +748,7 @@
   function generateId() {
     return "cls_" + Math.random().toString(36).slice(2, 10) + "_" + Date.now().toString(36);
   }
-  figma.showUI(__html__, { width: 365, height: 560, title: "Styles Managers", themeColors: true });
+  figma.showUI(__html__, { width: 365, height: 570, title: "Styles Managers", themeColors: true });
   var pinnedNode = null;
   function getValidNode(sel) {
     const node = sel[0];

@@ -560,6 +560,8 @@
       scrollbar-width: thin;
       scrollbar-color: transparent transparent;
       transition: scrollbar-color var(--transition-base);
+      scroll-padding-top: 38px;
+      scroll-padding-bottom: 12px;
     }
 
     .list-container:hover {
@@ -695,7 +697,13 @@
       position: sticky;
       top: 0;
       background: var(--background);
-      z-index: 1;
+      z-index: 10;
+      border-bottom: 1px solid transparent;
+      transition: border-bottom var(--transition-fast);
+    }
+
+    .label-header.is-stuck {
+      border-bottom-color: var(--border);
     }
 
     /* ── Class item (shadcn Sidebar MenuItem pattern) ── */
@@ -705,10 +713,13 @@
       padding: 8px 16px 8px 8px;
       cursor: pointer;
       border-radius: calc(var(--radius) - 2px);
-      margin: 1px 8px;
+      margin: 8px 8px;
       transition: background var(--transition-fast);
       gap: 0px;
       position: relative;
+      scroll-margin-top: 38px;
+      /* Sticky header (~30px) + 8px gap */
+      scroll-margin-bottom: 12px;
     }
 
     .class-item:hover {
@@ -1517,6 +1528,25 @@
     let personalCheckedIds = new Set();
     let currentTheme = 'system';
 
+    function updateStickyHeaders(container) {
+      if (!container) return;
+      const headers = container.querySelectorAll('.label-header');
+      const containerRect = container.getBoundingClientRect();
+      const threshold = containerRect.top + 2;
+
+      headers.forEach(h => {
+        const hRect = h.getBoundingClientRect();
+        const gRect = h.parentElement.getBoundingClientRect();
+
+        // Stuck if it's at the top of the scroll container
+        const isStuck = hRect.top <= threshold;
+        // Pushing if the group's bottom is meeting the header's bottom
+        const isPushing = gRect.bottom <= hRect.bottom + 1;
+
+        h.classList.toggle('is-stuck', isStuck && !isPushing);
+      });
+    }
+
     // ── Theme Management ──
     function setTheme(theme, save = true) {
       currentTheme = theme;
@@ -1810,6 +1840,9 @@
         list.appendChild(group);
       }
 
+      // Initialize sticky headers state
+      updateStickyHeaders(list);
+
       insertBtn.disabled = !selectedId || !classes.find((c) => c.id === selectedId);
     }
 
@@ -2081,6 +2114,14 @@
       renderList("personal", e.target.value.trim().toLowerCase());
     });
 
+    // ── Sticky Header Scroll Listeners ──
+    ["globalClassList", "personalClassList"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('scroll', (e) => updateStickyHeaders(e.target), { passive: true });
+      }
+    });
+
     // ── Alert ──
     let alertTimer = null;
     function showAlert(message, type = "success") {
@@ -2113,7 +2154,7 @@
       const handle = document.getElementById("resizeHandle");
       const overlay = document.getElementById("resizeOverlay");
       const MIN_W = 365;
-      const MIN_H = 566;
+      const MIN_H = 570;
       const MAX_W = 800;
       const MAX_H = 1200;
 
