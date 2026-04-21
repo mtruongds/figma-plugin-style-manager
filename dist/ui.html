@@ -149,14 +149,14 @@
       color: var(--foreground);
       font-family: var(--font-sans);
       font-size: 13px;
-      line-height: 1.5;
       height: 100vh;
+      width: 100vw;
+      line-height: 1.5;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      min-width: 380px;
     }
 
     /* ── Header (shadcn Sidebar Header pattern) ── */
@@ -774,7 +774,7 @@
     .class-meta {
       font-size: 11px;
       color: var(--muted-foreground);
-      margin-top: 1px;
+      padding: 4px 8px 4px 0;
       line-height: 1.3;
     }
 
@@ -1300,6 +1300,14 @@
         </div>
       </div>
 
+      <div class="form-row" style="margin-top: 8px;">
+        <div class="field">
+          <label class="field-label" for="globalDescriptionInput">Description</label>
+          <input class="input" id="globalDescriptionInput" type="text" maxlength="140"
+            placeholder="e.g. Standard layout container for cards" />
+        </div>
+      </div>
+
       <button class="btn btn-outline" id="globalSaveBtn" style="width: 100%;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
@@ -1388,6 +1396,14 @@
         <div class="field">
           <label class="field-label" for="personalNameInput">Name</label>
           <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top: 8px;">
+        <div class="field">
+          <label class="field-label" for="personalDescriptionInput">Description</label>
+          <input class="input" id="personalDescriptionInput" type="text" maxlength="140"
+            placeholder="e.g. My custom button style" />
         </div>
       </div>
 
@@ -1611,6 +1627,7 @@
           const saveSection = document.getElementById(scope + "SaveSection");
           const nameInput = document.getElementById(scope + "NameInput");
           const labelInput = document.getElementById(scope + "LabelInput");
+          const descriptionInput = document.getElementById(scope + "DescriptionInput");
 
           if (msg.hasValidSelection) {
             indicator.classList.add("has-selection");
@@ -1657,6 +1674,7 @@
             if (match) {
               nameInput.value = match.name;
               labelInput.value = match.label || "";
+              if (descriptionInput) descriptionInput.value = match.description || "";
 
               // Show notification badge if match found in an inactive tab
               const badge = document.getElementById(scope + "MatchBadge");
@@ -1692,6 +1710,7 @@
               // Clear inputs and selection if no match found
               nameInput.value = "";
               labelInput.value = "";
+              if (descriptionInput) descriptionInput.value = "";
               if (scope === "global") globalSelectedId = null;
               else personalSelectedId = null;
 
@@ -1708,6 +1727,7 @@
             saveSection.classList.remove("visible");
             if (nameInput) nameInput.value = "";
             if (labelInput) labelInput.value = "";
+            if (descriptionInput) descriptionInput.value = "";
             if (scope === "global") globalSelectedId = null;
             else personalSelectedId = null;
 
@@ -1797,7 +1817,8 @@
         items = items.filter(
           (c) =>
             c.name.toLowerCase().includes(filter) ||
-            (c.label || "").toLowerCase().includes(filter)
+            (c.label || "").toLowerCase().includes(filter) ||
+            (c.description || "").toLowerCase().includes(filter)
         );
       }
 
@@ -1891,12 +1912,22 @@
       name.className = "class-name";
       name.textContent = cls.name;
 
+      info.appendChild(name);
+
+      if (cls.description) {
+        const desc = document.createElement("div");
+        desc.className = "class-meta";
+        desc.style.opacity = "0.8";
+        desc.style.marginTop = "0";
+        desc.textContent = cls.description;
+        info.appendChild(desc);
+      }
+
       const meta = document.createElement("div");
       meta.className = "class-meta";
       const d = new Date(cls.updatedAt);
       meta.textContent = formatDate(d);
 
-      info.appendChild(name);
       info.appendChild(meta);
 
       const badge = document.createElement("div");
@@ -1933,11 +1964,13 @@
           document.getElementById("globalInsertBtn").disabled = false;
           document.getElementById("globalNameInput").value = cls.name;
           document.getElementById("globalLabelInput").value = cls.label || "";
+          document.getElementById("globalDescriptionInput").value = cls.description || "";
         } else {
           personalSelectedId = cls.id;
           document.getElementById("personalInsertBtn").disabled = false;
           document.getElementById("personalNameInput").value = cls.name;
           document.getElementById("personalLabelInput").value = cls.label || "";
+          document.getElementById("personalDescriptionInput").value = cls.description || "";
         }
         // Highlight in this scope
         document.querySelectorAll("#panel" + capitalize(scope) + " .class-item")
@@ -2042,15 +2075,17 @@
     document.getElementById("globalSaveBtn").addEventListener("click", () => {
       const name = document.getElementById("globalNameInput").value.trim();
       const label = document.getElementById("globalLabelInput").value.trim();
+      const description = document.getElementById("globalDescriptionInput").value.trim();
       if (!name) { showAlert("Enter a class name.", "error"); return; }
-      post({ type: "save-class", name, label, scope: "global" });
+      post({ type: "save-class", name, label, description, scope: "global" });
     });
 
     document.getElementById("personalSaveBtn").addEventListener("click", () => {
       const name = document.getElementById("personalNameInput").value.trim();
       const label = document.getElementById("personalLabelInput").value.trim();
+      const description = document.getElementById("personalDescriptionInput").value.trim();
       if (!name) { showAlert("Enter a class name.", "error"); return; }
-      post({ type: "save-class", name, label, scope: "personal" });
+      post({ type: "save-class", name, label, description, scope: "personal" });
     });
 
     // ── Export actions ──
@@ -2154,9 +2189,9 @@
       const handle = document.getElementById("resizeHandle");
       const overlay = document.getElementById("resizeOverlay");
       const MIN_W = 380;
-      const MIN_H = 570;
+      const MIN_H = 650;
       const MAX_W = 800;
-      const MAX_H = 1200;
+      const MAX_H = 900;
 
       let isDragging = false;
       let startX, startY, startW, startH;

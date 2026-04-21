@@ -122,6 +122,7 @@ interface ClassDefinition {
   id: string;
   name: string;
   label: string;
+  description?: string;
   nodeTree: SerializedNode;
   version: number;
   updatedAt: string;
@@ -940,7 +941,7 @@ function generateId(): string {
 // Main plugin logic
 // ─────────────────────────────────────────────────────────────────────────────
 
-figma.showUI(__html__, { width: 380, height: 570, title: "Styles Managers", themeColors: true });
+figma.showUI(__html__, { width: 380, height: 650, title: "Styles Managers", themeColors: true });
 
 let pinnedNode: any = null;
 
@@ -1121,6 +1122,7 @@ figma.ui.onmessage = async (msg) => {
         // Update label (if user changed it, although findIndex now matches exactly, 
         // this allows for consistency in case of logic changes)
         classes[existingIdx].label = msg.label || "";
+        classes[existingIdx].description = msg.description || "";
         classes[existingIdx].version = classes[existingIdx].version + 1;
         classes[existingIdx].updatedAt = now;
       } else {
@@ -1128,6 +1130,7 @@ figma.ui.onmessage = async (msg) => {
           id: generateId(),
           name: msg.name,
           label: msg.label || "",
+          description: msg.description || "",
           nodeTree,
           version: 1,
           updatedAt: now,

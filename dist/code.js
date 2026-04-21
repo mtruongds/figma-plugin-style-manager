@@ -770,7 +770,7 @@
   function generateId() {
     return "cls_" + Math.random().toString(36).slice(2, 10) + "_" + Date.now().toString(36);
   }
-  figma.showUI(__html__, { width: 380, height: 570, title: "Styles Managers", themeColors: true });
+  figma.showUI(__html__, { width: 380, height: 650, title: "Styles Managers", themeColors: true });
   var pinnedNode = null;
   function getValidNode(sel) {
     const node = sel[0];
@@ -920,6 +920,7 @@
         if (existingIdx >= 0) {
           classes[existingIdx].nodeTree = nodeTree;
           classes[existingIdx].label = msg.label || "";
+          classes[existingIdx].description = msg.description || "";
           classes[existingIdx].version = classes[existingIdx].version + 1;
           classes[existingIdx].updatedAt = now;
         } else {
@@ -927,6 +928,7 @@
             id: generateId(),
             name: msg.name,
             label: msg.label || "",
+            description: msg.description || "",
             nodeTree,
             version: 1,
             updatedAt: now,
