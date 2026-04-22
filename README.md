@@ -8,10 +8,9 @@ A powerful Figma plugin that enables "Class-based" design by treating node trees
 
 - **Deep Serialization**: Captures frame, and nested frame, auto-layout, fills, typography, opacity, corner radius, strokes, effects, and bound variables.
 - **Smart Restoration**: Recreates complex node trees with pixel perfection, automatically loading required fonts.
-- **Individual Stroke Support**: Preserves specific border weights for top, right, bottom, and left sides.
 - **Text Style & Variable Support**: Preserves text style references and complex text property variable bindings (font size, letter spacing, etc.).
 - **Variable Support**: Preserves variable bindings for colors, spacing, and numbers.
-- **Local Persistence**: Stores your personal classes in `clientStorage` for use across different Figma files.
+- **Local Save**: Stores your personal classes in your own device for use across different Figma files.
 - **Sync, Export & Import**: Sync your class presets with a GitHub repository, or export them to a `.json` file, and import them anywhere.
 - **Group & Search**: Organize your classes with labels and find them instantly with the built-in search.
 
@@ -71,7 +70,7 @@ npm run dev
 
 ### Saving a Class
 1. Select a **Frame**, **Component** or **Instance Component** on the Figma canvas.
-2. Give it a **Name** (e.g., `Card / Default`) and an optional **Label** for grouping.
+2. Give it a **Name** (e.g., `Section or Container`) and an optional **Label** for grouping (e.g., `Layout or Basic`).
 3. Click **Save Class**. The node tree is now serialized and stored locally.
 
 ### Inserting a Class
