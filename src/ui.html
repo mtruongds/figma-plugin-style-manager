@@ -39,12 +39,20 @@
       --sync-accent: hsl(150 55% 42%);
       --sync-accent-muted: hsl(142 76% 36% / 0.12);
       --sync-accent-border: hsl(142 76% 36% / 0.3);
+
+      /* Panel Animations (Transitions.dev) */
+      --panel-open-dur: 400ms;
+      --panel-close-dur: 350ms;
+      --panel-translate-y: calc(187px * 0.5);
+      --panel-blur: 2px;
+      --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     /* Dark Theme (Default/explicit) */
     html[data-theme="dark"],
     :root:not([data-theme]) {
       --background: hsl(240 10% 3.9%);
+      --background-alt: hsl(0 0% 98%);
       --foreground: hsl(0 0% 98%);
       --card: hsl(240 10% 3.9%);
       --card-foreground: hsl(0 0% 98%);
@@ -79,6 +87,7 @@
     /* Light Theme */
     html[data-theme="light"] {
       --background: hsl(0 0% 100%);
+      --background-alt: hsl(240 10% 3.9%);
       --foreground: hsl(240 10% 3.9%);
       --card: hsl(0 0% 100%);
       --card-foreground: hsl(240 10% 3.9%);
@@ -113,6 +122,7 @@
     /* System Theme (Figma Native Mapping) */
     html[data-theme="system"] {
       --background: var(--figma-color-bg);
+      --background-alt: var(--figma-color-text);
       --foreground: var(--figma-color-text);
       --card: var(--figma-color-bg);
       --card-foreground: var(--figma-color-text);
@@ -806,16 +816,53 @@
     }
 
     /* ── Save section (Card pattern) ── */
-    .save-section {
-      border-top: 1px solid var(--border);
-      padding: 14px 16px;
+    .save-section-wrapper {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows var(--panel-open-dur) var(--panel-ease);
+      overflow: hidden;
       flex-shrink: 0;
-      background: var(--sidebar);
-      display: none;
     }
 
-    .save-section.visible {
-      display: block;
+    .save-section-wrapper[data-open="true"] {
+      grid-template-rows: 1fr;
+    }
+
+    .save-section {
+      min-height: 0;
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      background: var(--sidebar);
+
+      /* Transitions.dev — Panel reveal */
+      transform: translateY(var(--panel-translate-y));
+      opacity: 0;
+      filter: blur(var(--panel-blur));
+      pointer-events: none;
+      transition:
+        transform var(--panel-close-dur) var(--panel-ease),
+        opacity var(--panel-close-dur) var(--panel-ease),
+        filter var(--panel-close-dur) var(--panel-ease);
+      will-change: transform, opacity, filter;
+    }
+
+    .save-section-wrapper[data-open="true"] .save-section {
+      transform: translateY(0);
+      opacity: 1;
+      filter: blur(0);
+      pointer-events: auto;
+      transition:
+        transform var(--panel-open-dur) var(--panel-ease),
+        opacity var(--panel-open-dur) var(--panel-ease),
+        filter var(--panel-open-dur) var(--panel-ease);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .save-section-wrapper,
+      .save-section {
+        transition: none !important;
+      }
     }
 
     .save-label {
@@ -934,17 +981,15 @@
     }
 
     .alert.success {
-      background: var(--popover);
+      background: var(--background-alt);
       border-color: var(--border);
-      color: var(--success);
-      /* Bright success green for alert */
+      color: var(--accent);
     }
 
     .alert.error {
-      background: var(--popover);
+      background: var(--background-alt);
       border-color: var(--border);
-      color: hsl(358 65% 49%);
-      /* Bright error red for alert */
+      color: var(--accent);
     }
 
     .alert-icon {
@@ -1281,41 +1326,43 @@
     </div>
 
     <!-- Save section -->
-    <div class="save-section" id="globalSaveSection">
-      <div class="save-label">Save Selection to Global Presets</div>
+    <div class="save-section-wrapper" id="globalSaveSection" data-open="false">
+      <div class="save-section">
+        <div class="save-label">Save Selection to Global Presets</div>
 
-      <div class="selection-indicator" id="globalSelectionIndicator">
-        <div class="selection-dot"></div>
-        <span class="selection-text" id="globalSelectionText">No frame selected on canvas</span>
-      </div>
-
-      <div class="form-row">
-        <div class="field">
-          <label class="field-label" for="globalLabelInput">Label</label>
-          <input class="input" id="globalLabelInput" type="text" placeholder="e.g. Layout" />
+        <div class="selection-indicator" id="globalSelectionIndicator">
+          <div class="selection-dot"></div>
+          <span class="selection-text" id="globalSelectionText">No frame selected on canvas</span>
         </div>
-        <div class="field">
-          <label class="field-label" for="globalNameInput">Name</label>
-          <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
-        </div>
-      </div>
 
-      <div class="form-row" style="margin-top: 8px;">
-        <div class="field">
-          <label class="field-label" for="globalDescriptionInput">Description</label>
-          <input class="input" id="globalDescriptionInput" type="text" maxlength="140"
-            placeholder="e.g. Standard layout container for cards" />
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label" for="globalLabelInput">Label</label>
+            <input class="input" id="globalLabelInput" type="text" placeholder="e.g. Layout" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="globalNameInput">Name</label>
+            <input class="input" id="globalNameInput" type="text" placeholder="e.g. Container" />
+          </div>
         </div>
-      </div>
 
-      <button class="btn btn-outline" id="globalSaveBtn" style="width: 100%;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 5v14" />
-          <path d="M5 12h14" />
-        </svg>
-        Save to Global Presets
-      </button>
+        <div class="form-row" style="margin-top: 8px;">
+          <div class="field">
+            <label class="field-label" for="globalDescriptionInput">Description</label>
+            <input class="input" id="globalDescriptionInput" type="text" maxlength="140"
+              placeholder="e.g. Standard layout container for cards" />
+          </div>
+        </div>
+
+        <button class="btn btn-outline" id="globalSaveBtn" style="width: 100%;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+          Save to Global Presets
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1380,41 +1427,43 @@
     </div>
 
     <!-- Save section -->
-    <div class="save-section" id="personalSaveSection">
-      <div class="save-label">Save Selection to Personal Presets</div>
+    <div class="save-section-wrapper" id="personalSaveSection" data-open="false">
+      <div class="save-section">
+        <div class="save-label">Save Selection to Personal Presets</div>
 
-      <div class="selection-indicator" id="personalSelectionIndicator">
-        <div class="selection-dot"></div>
-        <span class="selection-text" id="personalSelectionText">No frame selected on canvas</span>
-      </div>
-
-      <div class="form-row">
-        <div class="field">
-          <label class="field-label" for="personalLabelInput">Label</label>
-          <input class="input" id="personalLabelInput" type="text" placeholder="e.g. Layout" />
+        <div class="selection-indicator" id="personalSelectionIndicator">
+          <div class="selection-dot"></div>
+          <span class="selection-text" id="personalSelectionText">No frame selected on canvas</span>
         </div>
-        <div class="field">
-          <label class="field-label" for="personalNameInput">Name</label>
-          <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
-        </div>
-      </div>
 
-      <div class="form-row" style="margin-top: 8px;">
-        <div class="field">
-          <label class="field-label" for="personalDescriptionInput">Description</label>
-          <input class="input" id="personalDescriptionInput" type="text" maxlength="140"
-            placeholder="e.g. My custom button style" />
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label" for="personalLabelInput">Label</label>
+            <input class="input" id="personalLabelInput" type="text" placeholder="e.g. Layout" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="personalNameInput">Name</label>
+            <input class="input" id="personalNameInput" type="text" placeholder="e.g. Container" />
+          </div>
         </div>
-      </div>
 
-      <button class="btn btn-outline" id="personalSaveBtn" style="width: 100%;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 5v14" />
-          <path d="M5 12h14" />
-        </svg>
-        Save to Personal Presets
-      </button>
+        <div class="form-row" style="margin-top: 8px;">
+          <div class="field">
+            <label class="field-label" for="personalDescriptionInput">Description</label>
+            <input class="input" id="personalDescriptionInput" type="text" maxlength="140"
+              placeholder="e.g. My custom button style" />
+          </div>
+        </div>
+
+        <button class="btn btn-outline" id="personalSaveBtn" style="width: 100%;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+          Save to Personal Presets
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1632,7 +1681,7 @@
           if (msg.hasValidSelection) {
             indicator.classList.add("has-selection");
             text.textContent = msg.nodeName || "Frame selected";
-            saveSection.classList.add("visible");
+            saveSection.dataset.open = "true";
 
             const classes = scope === "global" ? globalClasses : personalClasses;
             const nodeName = msg.nodeName || "";
@@ -1724,7 +1773,7 @@
           } else {
             indicator.classList.remove("has-selection");
             text.textContent = "No frame selected on canvas";
-            saveSection.classList.remove("visible");
+            saveSection.dataset.open = "false";
             if (nameInput) nameInput.value = "";
             if (labelInput) labelInput.value = "";
             if (descriptionInput) descriptionInput.value = "";
