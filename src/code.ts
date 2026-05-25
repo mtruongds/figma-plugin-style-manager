@@ -576,6 +576,15 @@ function applyLayoutSizing(node: any, data: SerializedNode) {
   } catch (e) { }
 }
 
+function seedSavedSize(node: any, data: SerializedNode) {
+  if (typeof node.resize !== "function") return;
+  if (data.width === undefined || data.height === undefined) return;
+
+  try {
+    node.resize(Math.max(data.width, 1), Math.max(data.height, 1));
+  } catch (e) { }
+}
+
 function applyNodeResize(node: any, data: SerializedNode) {
   if (typeof node.resize !== "function") return;
   if (data.width === undefined || data.height === undefined) return;
@@ -1001,6 +1010,7 @@ async function restoreNode(data: SerializedNode, parent: FrameNode | ComponentNo
     await applyStyleIds(frame, data);
 
     applyCorners(frame, data);
+    seedSavedSize(frame, data);
     applyFrameLayout(frame, data);
     parent.appendChild(frame);
     applyBaseLayout(frame, data);
@@ -1026,6 +1036,11 @@ async function restoreNode(data: SerializedNode, parent: FrameNode | ComponentNo
         }
       }
     }
+
+    // Re-apply layout after children exist so Hug contents can resolve from
+    // the final restored child tree, including nested Hug frames.
+    applyFrameLayout(frame, data);
+    applyBaseLayout(frame, data);
 
     node = frame;
   }

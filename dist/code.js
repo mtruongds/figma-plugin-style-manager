@@ -332,6 +332,14 @@
     } catch (e) {
     }
   }
+  function seedSavedSize(node, data) {
+    if (typeof node.resize !== "function") return;
+    if (data.width === void 0 || data.height === void 0) return;
+    try {
+      node.resize(Math.max(data.width, 1), Math.max(data.height, 1));
+    } catch (e) {
+    }
+  }
   function applyNodeResize(node, data) {
     var _a, _b;
     if (typeof node.resize !== "function") return;
@@ -758,6 +766,7 @@
       }
       await applyStyleIds(frame, data);
       applyCorners(frame, data);
+      seedSavedSize(frame, data);
       applyFrameLayout(frame, data);
       parent.appendChild(frame);
       applyBaseLayout(frame, data);
@@ -778,6 +787,8 @@
           }
         }
       }
+      applyFrameLayout(frame, data);
+      applyBaseLayout(frame, data);
       node = frame;
     } else if (data.type === "GROUP") {
       const tempFrame = figma.createFrame();
