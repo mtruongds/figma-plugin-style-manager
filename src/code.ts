@@ -1464,7 +1464,7 @@ async function loadPersonalClasses(): Promise<ClassDefinition[]> {
 }
 
 async function savePersonalClasses(classes: ClassDefinition[]): Promise<void> {
-  await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes));
+  await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes, (k, v) => v === null ? undefined : v));
 }
 
 // ── Global  (clientStorage) ─────────────────────────────────────────────
@@ -1475,7 +1475,7 @@ async function loadGlobalClasses(): Promise<ClassDefinition[]> {
 }
 
 async function saveGlobalClasses(classes: ClassDefinition[]): Promise<void> {
-  await figma.clientStorage.setAsync(GLOBAL_STORAGE_KEY, JSON.stringify(classes));
+  await figma.clientStorage.setAsync(GLOBAL_STORAGE_KEY, JSON.stringify(classes, (k, v) => v === null ? undefined : v));
 }
 
 // ── Shared helpers ──────────────────────────────────────────────────────────

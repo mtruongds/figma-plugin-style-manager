@@ -2256,7 +2256,7 @@
     });
 
     function downloadJSON(data, filename) {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, (k, v) => v === null ? undefined : v, 2));
       const a = document.createElement("a");
       a.setAttribute("href", dataStr);
       a.setAttribute("download", filename);
@@ -2510,7 +2510,7 @@
         } catch (e) { }
 
         // 2. Push update
-        const contentB64 = utf8_to_b64(JSON.stringify(classes, null, 2));
+        const contentB64 = utf8_to_b64(JSON.stringify(classes, (k, v) => v === null ? undefined : v, 2));
         const bodyObj = {
           message: "Automated update from Figma Style Managers",
           content: contentB64,

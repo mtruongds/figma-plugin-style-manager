@@ -1251,7 +1251,7 @@
     }
   }
   async function savePersonalClasses(classes) {
-    await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes));
+    await figma.clientStorage.setAsync(LOCAL_STORAGE_KEY, JSON.stringify(classes, (k, v) => v === null ? void 0 : v));
   }
   async function loadGlobalClasses() {
     const raw = await figma.clientStorage.getAsync(GLOBAL_STORAGE_KEY);
@@ -1263,7 +1263,7 @@
     }
   }
   async function saveGlobalClasses(classes) {
-    await figma.clientStorage.setAsync(GLOBAL_STORAGE_KEY, JSON.stringify(classes));
+    await figma.clientStorage.setAsync(GLOBAL_STORAGE_KEY, JSON.stringify(classes, (k, v) => v === null ? void 0 : v));
   }
   function mergeClasses(existing, imported) {
     const map = /* @__PURE__ */ new Map();
